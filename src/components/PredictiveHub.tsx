@@ -34,13 +34,15 @@ import {
   HeatwaveForecastItem, 
   WaterSecurityForecastItem,
   SegFormerSARWaterlogging,
-  HistoricalRiskHotspot
+  HistoricalRiskHotspot,
+  CityHealthOverview
 } from '../types';
-import { INITIAL_SAR_WATERLOGGING, HISTORICAL_RISK_HOTSPOTS, INITIAL_INCIDENTS } from '../data/mockData';
+import { INITIAL_SAR_WATERLOGGING, HISTORICAL_RISK_HOTSPOTS, INITIAL_INCIDENTS, INITIAL_CITY_HEALTH } from '../data/mockData';
 import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
 import { MaintenanceTrendAnalysis } from './MaintenanceTrendAnalysis';
 
 interface PredictiveHubProps {
+  cityHealth?: CityHealthOverview;
   floodForecast: PredictiveFloodForecast;
   roadDamages: YoloRoadDamageDetection[];
   wasteHotspots: WasteHotspotItem[];
@@ -56,6 +58,7 @@ interface PredictiveHubProps {
 }
 
 export const PredictiveHub: React.FC<PredictiveHubProps> = ({
+  cityHealth = INITIAL_CITY_HEALTH,
   floodForecast,
   roadDamages,
   wasteHotspots,
@@ -1069,6 +1072,7 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
       {activeEngine === 'MAINTENANCE' && (
         <div className="space-y-6">
           <MaintenanceTrendAnalysis 
+            cityHealth={cityHealth}
             onDispatchCrew={onDispatchCrew}
             onSelectWard={() => onViewOnMap?.()}
           />
@@ -1096,6 +1100,7 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
             </button>
           </div>
           <MaintenanceTrendAnalysis 
+            cityHealth={cityHealth}
             onDispatchCrew={onDispatchCrew}
             onSelectWard={() => onViewOnMap?.()}
           />

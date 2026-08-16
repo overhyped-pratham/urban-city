@@ -9,6 +9,7 @@ import { CityCommandDashboard } from './components/CityCommandDashboard';
 import { AICommandCenter } from './components/AICommandCenter';
 import { PredictiveHub } from './components/PredictiveHub';
 import { SatelliteMap } from './components/SatelliteMap';
+import { InteractiveEarthGlobe } from './components/InteractiveEarthGlobe';
 import { IncidentListView } from './components/IncidentListView';
 import { DispatchManagement } from './components/DispatchManagement';
 import { CommunityReporting } from './components/CommunityReporting';
@@ -57,7 +58,7 @@ import {
 import { playNotificationChime } from './utils/audio';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'command' | 'map' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics'>('command');
+  const [activeTab, setActiveTab] = useState<'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics'>('command');
   
   // 2-Level Authority State (Default: Level 1 Monitor)
   const [currentAuthority, setCurrentAuthority] = useState<AuthorityLevel>('MONITOR');
@@ -532,6 +533,7 @@ export default function App() {
         {activeTab === 'predictive' && (
           <div className="max-w-7xl mx-auto px-4 py-6">
             <PredictiveHub
+              cityHealth={cityHealth}
               floodForecast={predictiveFlood}
               roadDamages={roadDamages}
               wasteHotspots={wasteHotspots}
@@ -564,6 +566,19 @@ export default function App() {
             onUpdateStatus={handleUpdateStatus}
             onAssignCrew={handleAssignCrew}
           />
+        )}
+
+        {/* 3D Interactive Earth Globe */}
+        {activeTab === 'globe' && (
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <InteractiveEarthGlobe
+              onSelectLocation={(lat, lng, name) => {
+                console.log(`Globe locked on: ${name} (${lat}, ${lng})`);
+              }}
+              onOpenSatelliteAnalyzer={() => setIsSatelliteModalOpen(true)}
+              onDispatchCrew={() => setActiveTab('crews')}
+            />
+          </div>
         )}
 
         {/* Incident List */}

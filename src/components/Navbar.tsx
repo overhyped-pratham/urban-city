@@ -3,6 +3,7 @@ import {
   Radio, 
   Satellite, 
   Map, 
+  Globe,
   Users, 
   BarChart3, 
   Truck, 
@@ -25,8 +26,8 @@ import { WeatherData, NotificationItem, CityHealthOverview, AuthorityLevel } fro
 import { AUTHORITY_USERS } from '../data/mockData';
 
 interface NavbarProps {
-  activeTab: 'command' | 'map' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics';
-  setActiveTab: (tab: 'command' | 'map' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics') => void;
+  activeTab: 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics';
+  setActiveTab: (tab: 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics') => void;
   weather: WeatherData | null;
   cityHealth?: CityHealthOverview;
   notifications: NotificationItem[];
@@ -148,6 +149,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Map className="w-3.5 h-3.5" />
             GIS Map
+          </button>
+
+          <button
+            id="nav-tab-globe"
+            onClick={() => setActiveTab('globe')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'globe'
+                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md font-bold'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5 text-cyan-300" />
+            3D Globe
           </button>
 
           <button

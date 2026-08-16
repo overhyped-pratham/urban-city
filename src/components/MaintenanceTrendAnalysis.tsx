@@ -32,24 +32,33 @@ import {
   MapPin,
   Sparkles,
   RefreshCw,
-  FileCheck
+  FileCheck,
+  Columns
 } from 'lucide-react';
 import {
   INITIAL_30DAY_TREND_DATA,
   ASSET_CATEGORIES,
   InfrastructureFailureTrendPoint
 } from '../data/maintenanceTrendData';
+import { CityHealthOverview } from '../types';
+import { INITIAL_CITY_HEALTH } from '../data/mockData';
+import { MaintenanceCityHealthSplitView } from './MaintenanceCityHealthSplitView';
 import confetti from 'canvas-confetti';
 
 interface MaintenanceTrendAnalysisProps {
+  cityHealth?: CityHealthOverview;
   onDispatchCrew?: (crewType: string, ward: string) => void;
   onSelectWard?: (wardName: string) => void;
 }
 
 export const MaintenanceTrendAnalysis: React.FC<MaintenanceTrendAnalysisProps> = ({
+  cityHealth = INITIAL_CITY_HEALTH,
   onDispatchCrew,
   onSelectWard
 }) => {
+  // Toggle for Split-View City Health Correlation mode
+  const [showSplitView, setShowSplitView] = useState<boolean>(false);
+
   // Horizon Filter: 7 Days, 15 Days, 30 Days
   const [horizonDays, setHorizonDays] = useState<7 | 15 | 30>(30);
   
@@ -258,6 +267,28 @@ export const MaintenanceTrendAnalysis: React.FC<MaintenanceTrendAnalysisProps> =
     return null;
   };
 
+  if (showSplitView) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <button
+            onClick={() => setShowSplitView(false)}
+            className="px-3.5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-2 cursor-pointer transition"
+          >
+            <Columns className="w-4 h-4 text-cyan-400" />
+            <span>Switch to Standard Trend View</span>
+          </button>
+        </div>
+        <MaintenanceCityHealthSplitView
+          cityHealth={cityHealth}
+          onDispatchCrew={onDispatchCrew}
+          onSelectWard={onSelectWard}
+          onCloseSplitView={() => setShowSplitView(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-white space-y-6">
       
@@ -285,6 +316,15 @@ export const MaintenanceTrendAnalysis: React.FC<MaintenanceTrendAnalysisProps> =
         {/* Action Buttons: Time Horizon & Sim Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
           
+          {/* Split View Correlation Button */}
+          <button
+            onClick={() => setShowSplitView(true)}
+            className="px-3.5 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2 shadow transition cursor-pointer"
+          >
+            <Columns className="w-4 h-4" />
+            <span>Split View: City Health Correlation</span>
+          </button>
+
           {/* Horizon Selector */}
           <div className="flex items-center gap-1 p-1 bg-slate-800/90 rounded-2xl border border-slate-700 text-xs">
             <button

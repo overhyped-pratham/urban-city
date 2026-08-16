@@ -28,6 +28,7 @@ import {
 import { CityHealthOverview, WardRiskProfile, PredictiveFloodForecast, SegFormerSARWaterlogging, AuthorityLevel } from '../types';
 import { INITIAL_SAR_WATERLOGGING, AUTHORITY_USERS } from '../data/mockData';
 import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
+import { InteractiveEarthGlobe } from './InteractiveEarthGlobe';
 
 interface CityCommandDashboardProps {
   cityHealth: CityHealthOverview;
@@ -308,6 +309,24 @@ export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
           </div>
           <p className="text-[10px] text-slate-400 mt-2">12 Critical Potholes</p>
         </div>
+      </div>
+
+      {/* Featured Main Dashboard Interactive 3D Earth Globe */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            Global Orbital Telemetry &amp; Interactive Earth Globe
+          </h3>
+          <span className="text-xs text-indigo-400 font-mono font-medium">Click coordinates to inspect live climate risks</span>
+        </div>
+        <InteractiveEarthGlobe 
+          onSelectLocation={(lat, lng, name) => {
+            console.log(`Selected location on main dashboard: ${name}`);
+          }}
+          onOpenSatelliteAnalyzer={() => onNavigateTab('map')}
+          onDispatchCrew={() => onNavigateTab('crews')}
+        />
       </div>
 
       {/* Near-Real-Time Satellite Waterlogging Monitor (SegFormer-B2 + Sentinel-1 SAR) */}
