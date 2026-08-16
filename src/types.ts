@@ -137,6 +137,48 @@ export interface WardRiskProfile {
   historicalFloodVulnerability: 'HIGH' | 'MODERATE' | 'LOW';
 }
 
+export interface SegFormerSARWaterlogging {
+  id: string;
+  satellite: string; // e.g. 'Sentinel-1B C-Band SAR'
+  passId: string;
+  orbitMode: string; // 'Ascending (Track 114)'
+  polarization: string; // 'VV + VH dual-pol backscatter (dB)'
+  resolutionMeters: number; // 10
+  overpassTimestamp: string;
+  updatedTimeAgo: string; // '8 min ago'
+  status: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'NORMAL';
+  confidencePercentage: number; // 87.4%
+  totalWaterloggedAreaKm2: number; // 2.34
+  deltaLast3HoursKm2: number; // +0.82
+  maxEstimatedDepthCm: number; // 48
+  vulnerableHouseholdsInMask: number; // 14,200
+  images: {
+    beforeNormalUrl: string;
+    currentSarUrl: string;
+    segFormerMaskUrl: string;
+  };
+  highRiskZones: {
+    id: string;
+    ward: string;
+    locationName: string;
+    areaSqMeters: number;
+    depthCm: number;
+    confidence: number;
+    lat: number;
+    lng: number;
+    priority: 'P1' | 'P2' | 'P3';
+    criticalAssetThreat: string;
+  }[];
+  polygonCoordinates: { lat: number; lng: number }[][];
+  pipelineDetails: {
+    sensor: string;
+    preprocessing: string;
+    modelArchitecture: string;
+    thresholdConfig: string;
+    latencyMs: number;
+  };
+}
+
 export interface CityHealthOverview {
   overallScore: number; // e.g. 78/100
   status: string;

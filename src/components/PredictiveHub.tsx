@@ -27,8 +27,11 @@ import {
   YoloRoadDamageDetection, 
   WasteHotspotItem, 
   HeatwaveForecastItem, 
-  WaterSecurityForecastItem 
+  WaterSecurityForecastItem,
+  SegFormerSARWaterlogging
 } from '../types';
+import { INITIAL_SAR_WATERLOGGING } from '../data/mockData';
+import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
 
 interface PredictiveHubProps {
   floodForecast: PredictiveFloodForecast;
@@ -36,7 +39,9 @@ interface PredictiveHubProps {
   wasteHotspots: WasteHotspotItem[];
   heatwave: HeatwaveForecastItem;
   waterSecurity: WaterSecurityForecastItem;
+  sarData?: SegFormerSARWaterlogging;
   onDispatchCrew?: (crewType: string, ward: string) => void;
+  onViewOnMap?: () => void;
 }
 
 export const PredictiveHub: React.FC<PredictiveHubProps> = ({
@@ -45,7 +50,9 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
   wasteHotspots,
   heatwave,
   waterSecurity,
-  onDispatchCrew
+  sarData = INITIAL_SAR_WATERLOGGING,
+  onDispatchCrew,
+  onViewOnMap
 }) => {
   const [activeEngine, setActiveEngine] = useState<'FLOOD' | 'ROAD' | 'WASTE' | 'HEAT' | 'WATER'>('FLOOD');
   
@@ -269,6 +276,13 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Near-Real-Time SegFormer-B2 Sentinel-1 SAR Waterlogging Monitor Component */}
+          <LiveWaterloggingMonitor
+            sarData={sarData}
+            onViewOnMap={onViewOnMap}
+            onDispatchCrew={(ward) => onDispatchCrew?.('DEWATERING_PUMP_UNIT', ward)}
+          />
         </div>
       )}
 

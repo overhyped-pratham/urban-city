@@ -68,6 +68,43 @@ export const MapCircle: React.FC<MapCircleProps> = ({ center, radius, options })
   return null;
 };
 
+export interface MapPolygonProps {
+  paths: google.maps.LatLngLiteral[] | google.maps.LatLngLiteral[][];
+  options?: google.maps.PolygonOptions;
+  onClick?: (e: google.maps.MapMouseEvent) => void;
+}
+
+export const MapPolygon: React.FC<MapPolygonProps> = ({ paths, options, onClick }) => {
+  const map = useMap();
+  const polygonRef = useRef<google.maps.Polygon | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const polygon = new google.maps.Polygon({
+      paths,
+      ...options,
+      map
+    });
+    polygonRef.current = polygon;
+
+    let clickListener: google.maps.MapsEventListener | null = null;
+    if (onClick) {
+      clickListener = polygon.addListener('click', onClick);
+    }
+
+    return () => {
+      if (clickListener) {
+        google.maps.event.removeListener(clickListener);
+      }
+      polygon.setMap(null);
+      polygonRef.current = null;
+    };
+  }, [map, paths, options?.fillColor, options?.fillOpacity, options?.strokeColor, options?.strokeWeight]);
+
+  return null;
+};
+
 export const MapCameraPan: React.FC<{ target: google.maps.LatLngLiteral | null; zoom?: number }> = ({ target, zoom = 15 }) => {
   const map = useMap();
 

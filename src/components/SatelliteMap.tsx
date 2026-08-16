@@ -27,9 +27,9 @@ import {
   Navigation,
   Key
 } from 'lucide-react';
-import { Incident, MaintenanceCrew, CitizenReport, IncidentCategory, IncidentSeverity, IncidentStatus } from '../types';
-import { GIS_POWER_LINES, GIS_DRAINAGE_NETWORK } from '../data/mockData';
-import { MapPolyline, MapCircle, MapCameraPan } from './GoogleMapOverlays';
+import { Incident, MaintenanceCrew, CitizenReport, IncidentCategory, IncidentSeverity, IncidentStatus, SegFormerSARWaterlogging } from '../types';
+import { GIS_POWER_LINES, GIS_DRAINAGE_NETWORK, INITIAL_SAR_WATERLOGGING } from '../data/mockData';
+import { MapPolyline, MapCircle, MapPolygon, MapCameraPan } from './GoogleMapOverlays';
 
 interface SatelliteMapProps {
   incidents: Incident[];
@@ -69,6 +69,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
   const [showCrews, setShowCrews] = useState(true);
   const [showCitizens, setShowCitizens] = useState(true);
   const [showHazardRadius, setShowHazardRadius] = useState(true);
+  const [showSarWaterMask, setShowSarWaterMask] = useState(true);
 
   // Filters
   const [filterType, setFilterType] = useState<string>('ALL');
@@ -81,6 +82,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
   const [infoWindowIncident, setInfoWindowIncident] = useState<Incident | null>(selectedIncident);
   const [selectedCrew, setSelectedCrew] = useState<MaintenanceCrew | null>(null);
   const [selectedCitizenReport, setSelectedCitizenReport] = useState<CitizenReport | null>(null);
+  const [selectedSarZone, setSelectedSarZone] = useState<typeof INITIAL_SAR_WATERLOGGING.highRiskZones[0] | null>(null);
 
   // Sync selected incident when changed from props
   React.useEffect(() => {
@@ -272,6 +274,70 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                 />
               );
             })}
+
+            {/* AI SegFormer-B2 + Sentinel-1 SAR Waterlogging Inundation Polygons */}
+            {showSarWaterMask && INITIAL_SAR_WATERLOGGING.polygonCoordinates.map((polygon, pIdx) => (
+              <MapPolygon
+                key={`sar-polygon-${pIdx}`}
+                paths={polygon}
+                options={{
+                  fillColor: '#06b6d4',
+                  fillOpacity: 0.38,
+                  strokeColor: '#0891b2',
+                  strokeWeight: 2,
+                  strokeOpacity: 0.9,
+                }}
+              />
+            ))}
+
+            {/* Sentinel-1 SAR High-Risk Inundation Cluster Centroid Markers */}
+            {showSarWaterMask && INITIAL_SAR_WATERLOGGING.highRiskZones.map((zone) => (
+              <AdvancedMarker
+                key={zone.id}
+                position={{ lat: zone.lat, lng: zone.lng }}
+                onClick={() => {
+                  setSelectedSarZone(zone);
+                  setInfoWindowIncident(null);
+                  setSelectedCrew(null);
+                  setSelectedCitizenReport(null);
+                }}
+                title={`SAR Inundation Cluster: ${zone.locationName} (${zone.confidence}% Confidence)`}
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    backgroundColor: '#0369a1',
+                    border: '2px solid #38bdf8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 14px #06b6d4aa',
+                    cursor: 'pointer',
+                    position: 'relative'
+                  }}
+                >
+                  <span style={{ fontSize: '15px' }}>🛰️</span>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      bottom: '-4px',
+                      right: '-4px',
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      fontSize: '8px',
+                      fontWeight: 'bold',
+                      padding: '1px 3px',
+                      borderRadius: '4px',
+                      border: '1px solid #7f1d1d'
+                    }}
+                  >
+                    {zone.priority}
+                  </span>
+                </div>
+              </AdvancedMarker>
+            ))}
 
             {/* Hazard Impact Radius Circles */}
             {showHazardRadius && filteredIncidents.map(inc => {
@@ -658,6 +724,60 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
               </InfoWindow>
             )}
 
+            {/* Sentinel-1 SAR SegFormer Cluster InfoWindow */}
+            {selectedSarZone && (
+              <InfoWindow
+                position={{ lat: selectedSarZone.lat, lng: selectedSarZone.lng }}
+                onCloseClick={() => setSelectedSarZone(null)}
+                pixelOffset={[0, -20]}
+              >
+                <div className="text-[#c9d1d9] font-sans p-1 max-w-xs space-y-2">
+                  <div className="flex items-center justify-between border-b border-[#30363d] pb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-cyan-300">🛰️ Sentinel-1 SAR Detection</span>
+                      <span className="text-[9px] px-1 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold">
+                        {selectedSarZone.priority}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/80 px-1 py-0.5 rounded border border-emerald-800">
+                      {selectedSarZone.confidence}% Conf
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-xs font-bold text-[#f0f6fc]">{selectedSarZone.locationName}</h4>
+                    <p className="text-[10px] text-[#8b949e]">{selectedSarZone.ward}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5 p-2 rounded-lg bg-[#161b22] border border-[#21262d] font-mono text-[10px]">
+                    <div>
+                      <span className="text-[#8b949e] block">Est. Submersion</span>
+                      <span className="text-cyan-400 font-bold">{selectedSarZone.depthCm} cm</span>
+                    </div>
+                    <div>
+                      <span className="text-[#8b949e] block">Water Area</span>
+                      <span className="text-[#f0f6fc] font-bold">{(selectedSarZone.areaSqMeters / 10000).toFixed(1)} ha</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-rose-300">
+                    ⚠️ {selectedSarZone.criticalAssetThreat}
+                  </p>
+
+                  <div className="pt-1 border-t border-[#30363d] flex items-center justify-between">
+                    <span className="text-[9px] font-mono text-slate-400">SegFormer-B2 Model</span>
+                    <button
+                      type="button"
+                      onClick={() => onOpenSatelliteAnalyzer()}
+                      className="px-2 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      Inspect Water Mask
+                    </button>
+                  </div>
+                </div>
+              </InfoWindow>
+            )}
+
           </Map>
         </div>
       </APIProvider>
@@ -936,6 +1056,19 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
               <span className="flex items-center gap-1">
                 <Camera className="w-3 h-3 text-emerald-400" />
                 Citizen Photos
+              </span>
+            </label>
+
+            <label className="flex items-center gap-1.5 cursor-pointer select-none col-span-2 pt-1 border-t border-[#21262d]">
+              <input
+                type="checkbox"
+                checked={showSarWaterMask}
+                onChange={e => setShowSarWaterMask(e.target.checked)}
+                className="rounded bg-[#161b22] border-[#30363d] text-cyan-500 focus:ring-0 cursor-pointer"
+              />
+              <span className="flex items-center gap-1 font-semibold text-cyan-300">
+                <span className="text-xs">🛰️</span>
+                Sentinel-1 SAR Mask (SegFormer-B2)
               </span>
             </label>
           </div>

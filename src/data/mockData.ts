@@ -9,7 +9,8 @@ import {
   YoloRoadDamageDetection,
   WasteHotspotItem,
   HeatwaveForecastItem,
-  WaterSecurityForecastItem
+  WaterSecurityForecastItem,
+  SegFormerSARWaterlogging
 } from '../types';
 
 export const INITIAL_WEATHER: WeatherData = {
@@ -808,3 +809,111 @@ export const GIS_DRAINAGE_NETWORK = [
     ]
   }
 ];
+
+export const INITIAL_SAR_WATERLOGGING: SegFormerSARWaterlogging = {
+  id: 'SAR-SEG-2026-8841',
+  satellite: 'Sentinel-1B C-Band SAR (Copernicus)',
+  passId: 'S1B_IW_GRDH_1SDV_20260816T172240',
+  orbitMode: 'Ascending (Track 114, Frame 480)',
+  polarization: 'VV + VH dual-pol backscatter (dB)',
+  resolutionMeters: 10,
+  overpassTimestamp: '2026-08-16T17:22:40Z',
+  updatedTimeAgo: '8 min ago',
+  status: 'CRITICAL',
+  confidencePercentage: 87.4,
+  totalWaterloggedAreaKm2: 2.34,
+  deltaLast3HoursKm2: 0.82,
+  maxEstimatedDepthCm: 55,
+  vulnerableHouseholdsInMask: 14200,
+  images: {
+    // Before: normal clear dry baseline optical satellite view
+    beforeNormalUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1000&q=80',
+    // Satellite SAR: current radar backscatter grayscale/false-color microwave image
+    currentSarUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=80',
+    // AI SegFormer-B2 Mask: segmented waterlogged probability heatmap with cyan flooded mask & red critical perimeters
+    segFormerMaskUrl: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1000&q=80'
+  },
+  highRiskZones: [
+    {
+      id: 'ZONE-SAR-12A',
+      ward: 'Ward 12 (Central Basin)',
+      locationName: 'Sector 4 Metro Underpass & Low-Lying Artery',
+      areaSqMeters: 420000,
+      depthCm: 55,
+      confidence: 94.2,
+      lat: 19.0760,
+      lng: 72.8777,
+      priority: 'P1',
+      criticalAssetThreat: 'Submerged 33kV Feeder Pillar & Metro Subsurface Drainage'
+    },
+    {
+      id: 'ZONE-SAR-04B',
+      ward: 'Ward 4 (Harbor Lowlands)',
+      locationName: 'Coastal Slum Sector & Sluice Channel Confluence',
+      areaSqMeters: 890000,
+      depthCm: 42,
+      confidence: 88.6,
+      lat: 19.0550,
+      lng: 72.8520,
+      priority: 'P1',
+      criticalAssetThreat: 'Tidal Backwater Overflow into 2,400 Ground-Floor Dwellings'
+    },
+    {
+      id: 'ZONE-SAR-07C',
+      ward: 'Ward 7 (River Corridor)',
+      locationName: 'Mithi River Canal Spillway & Rail Bridge Chokepoint',
+      areaSqMeters: 610000,
+      depthCm: 38,
+      confidence: 83.1,
+      lat: 19.0980,
+      lng: 72.8850,
+      priority: 'P2',
+      criticalAssetThreat: 'Railway Embankment Ballast Scour Risk'
+    },
+    {
+      id: 'ZONE-SAR-18D',
+      ward: 'Ward 18 (Eastern Basin)',
+      locationName: 'Industrial Estate Logistics Causeway',
+      areaSqMeters: 420000,
+      depthCm: 25,
+      confidence: 83.7,
+      lat: 19.0420,
+      lng: 72.8390,
+      priority: 'P3',
+      criticalAssetThreat: 'Surface water pooling obstructing chemical freight transit'
+    }
+  ],
+  polygonCoordinates: [
+    // Ward 12 Main Inundation Polygon
+    [
+      { lat: 19.0790, lng: 72.8740 },
+      { lat: 19.0815, lng: 72.8785 },
+      { lat: 19.0780, lng: 72.8830 },
+      { lat: 19.0735, lng: 72.8800 },
+      { lat: 19.0740, lng: 72.8745 }
+    ],
+    // Ward 4 Coastal Inundation Polygon
+    [
+      { lat: 19.0590, lng: 72.8480 },
+      { lat: 19.0610, lng: 72.8560 },
+      { lat: 19.0520, lng: 72.8580 },
+      { lat: 19.0490, lng: 72.8510 },
+      { lat: 19.0540, lng: 72.8470 }
+    ],
+    // Ward 7 River Corridor Spillway
+    [
+      { lat: 19.1020, lng: 72.8810 },
+      { lat: 19.1040, lng: 72.8890 },
+      { lat: 19.0950, lng: 72.8910 },
+      { lat: 19.0930, lng: 72.8830 }
+    ]
+  ],
+  pipelineDetails: {
+    sensor: 'Sentinel-1B Synthetic Aperture Radar (C-Band 5.405 GHz)',
+    preprocessing: 'Calibrated γ0 backscatter (dB) + Refined Lee Speckle Filter (7x7) + Range-Doppler Terrain Correction',
+    modelArchitecture: 'SegFormer-B2 (Hierarchical Transformer Encoder + All-MLP Decoder, Overlapping Patch Embeddings)',
+    thresholdConfig: 'Otsu Dynamic Backscatter Bimodal Threshold (σ0_VV < -17.8 dB, σ0_VH < -24.2 dB) + Hydro-connectivity',
+    latencyMs: 340
+  }
+};
+

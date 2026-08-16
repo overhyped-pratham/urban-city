@@ -17,14 +17,18 @@ import {
   Activity,
   Compass,
   MapPin,
-  ExternalLink
+  ExternalLink,
+  Radio
 } from 'lucide-react';
-import { CityHealthOverview, WardRiskProfile, PredictiveFloodForecast } from '../types';
+import { CityHealthOverview, WardRiskProfile, PredictiveFloodForecast, SegFormerSARWaterlogging } from '../types';
+import { INITIAL_SAR_WATERLOGGING } from '../data/mockData';
+import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
 
 interface CityCommandDashboardProps {
   cityHealth: CityHealthOverview;
   wardProfiles: WardRiskProfile[];
   floodForecast: PredictiveFloodForecast;
+  sarData?: SegFormerSARWaterlogging;
   onNavigateTab: (tab: any) => void;
   onSelectWard: (ward: WardRiskProfile) => void;
   onTriggerQuickAction: (action: string) => void;
@@ -34,6 +38,7 @@ export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
   cityHealth,
   wardProfiles,
   floodForecast,
+  sarData = INITIAL_SAR_WATERLOGGING,
   onNavigateTab,
   onSelectWard,
   onTriggerQuickAction,
@@ -235,6 +240,13 @@ export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
           <p className="text-[10px] text-slate-400 mt-2">12 Critical Potholes</p>
         </div>
       </div>
+
+      {/* Near-Real-Time Satellite Waterlogging Monitor (SegFormer-B2 + Sentinel-1 SAR) */}
+      <LiveWaterloggingMonitor
+        sarData={sarData}
+        onViewOnMap={() => onNavigateTab('map')}
+        onDispatchCrew={(ward) => onNavigateTab('crews')}
+      />
 
       {/* Middle Grid: TimesFM Flood Forecast + AI Recommended Preventive Directives */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

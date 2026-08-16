@@ -394,6 +394,7 @@ export default function App() {
               heatwave={heatwave}
               waterSecurity={waterSecurity}
               onDispatchCrew={() => setActiveTab('crews')}
+              onViewOnMap={() => setActiveTab('map')}
             />
           </div>
         )}
