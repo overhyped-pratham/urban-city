@@ -25,10 +25,25 @@ import {
   MapPin,
   Users,
   Navigation,
-  Key
+  Key,
+  Flame
 } from 'lucide-react';
-import { Incident, MaintenanceCrew, CitizenReport, IncidentCategory, IncidentSeverity, IncidentStatus, SegFormerSARWaterlogging } from '../types';
-import { GIS_POWER_LINES, GIS_DRAINAGE_NETWORK, INITIAL_SAR_WATERLOGGING } from '../data/mockData';
+import { 
+  Incident, 
+  MaintenanceCrew, 
+  CitizenReport, 
+  IncidentCategory, 
+  IncidentSeverity, 
+  IncidentStatus, 
+  SegFormerSARWaterlogging,
+  HistoricalRiskHotspot
+} from '../types';
+import { 
+  GIS_POWER_LINES, 
+  GIS_DRAINAGE_NETWORK, 
+  INITIAL_SAR_WATERLOGGING,
+  HISTORICAL_RISK_HOTSPOTS
+} from '../data/mockData';
 import { MapPolyline, MapCircle, MapPolygon, MapCameraPan } from './GoogleMapOverlays';
 
 interface SatelliteMapProps {
@@ -36,6 +51,10 @@ interface SatelliteMapProps {
   crews: MaintenanceCrew[];
   citizenReports: CitizenReport[];
   selectedIncident: Incident | null;
+  showHistoricalHeatmap?: boolean;
+  onToggleHistoricalHeatmap?: (active: boolean) => void;
+  historicalHeatmapCategory?: string;
+  onSelectHistoricalHeatmapCategory?: (cat: string) => void;
   onSelectIncident: (incident: Incident) => void;
   onOpenDispatchForIncident: (incident: Incident) => void;
   onOpenSatelliteAnalyzer: () => void;
@@ -48,6 +67,10 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
   crews,
   citizenReports,
   selectedIncident,
+  showHistoricalHeatmap = false,
+  onToggleHistoricalHeatmap,
+  historicalHeatmapCategory = 'ALL',
+  onSelectHistoricalHeatmapCategory,
   onSelectIncident,
   onOpenDispatchForIncident,
   onOpenSatelliteAnalyzer,
@@ -71,6 +94,21 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
   const [showHazardRadius, setShowHazardRadius] = useState(true);
   const [showSarWaterMask, setShowSarWaterMask] = useState(true);
 
+  // Local fallback for historical heatmap if not controlled
+  const [localHistoricalHeatmap, setLocalHistoricalHeatmap] = useState(false);
+  const isHistoricalHeatmapActive = onToggleHistoricalHeatmap ? showHistoricalHeatmap : localHistoricalHeatmap;
+  const handleToggleHistoricalHeatmap = (active: boolean) => {
+    setLocalHistoricalHeatmap(active);
+    onToggleHistoricalHeatmap?.(active);
+  };
+
+  const [localHistoricalCategory, setLocalHistoricalCategory] = useState('ALL');
+  const activeHistoricalCategory = onSelectHistoricalHeatmapCategory ? historicalHeatmapCategory : localHistoricalCategory;
+  const handleSelectHistoricalCategory = (cat: string) => {
+    setLocalHistoricalCategory(cat);
+    onSelectHistoricalHeatmapCategory?.(cat);
+  };
+
   // Filters
   const [filterType, setFilterType] = useState<string>('ALL');
   const [filterSeverity, setFilterSeverity] = useState<string>('ALL');
@@ -83,6 +121,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
   const [selectedCrew, setSelectedCrew] = useState<MaintenanceCrew | null>(null);
   const [selectedCitizenReport, setSelectedCitizenReport] = useState<CitizenReport | null>(null);
   const [selectedSarZone, setSelectedSarZone] = useState<typeof INITIAL_SAR_WATERLOGGING.highRiskZones[0] | null>(null);
+  const [selectedHistoricalHotspot, setSelectedHistoricalHotspot] = useState<HistoricalRiskHotspot | null>(null);
 
   // Sync selected incident when changed from props
   React.useEffect(() => {
@@ -300,6 +339,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                   setInfoWindowIncident(null);
                   setSelectedCrew(null);
                   setSelectedCitizenReport(null);
+                  setSelectedHistoricalHotspot(null);
                 }}
                 title={`SAR Inundation Cluster: ${zone.locationName} (${zone.confidence}% Confidence)`}
               >
@@ -338,6 +378,127 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                 </div>
               </AdvancedMarker>
             ))}
+
+            {/* HISTORICAL RISK HEATMAP OVERLAYS (5-Year PostGIS Recurrence Baselines) */}
+            {isHistoricalHeatmapActive && HISTORICAL_RISK_HOTSPOTS
+              .filter(h => activeHistoricalCategory === 'ALL' || h.category === activeHistoricalCategory)
+              .map(hotspot => {
+                const isSelected = selectedHistoricalHotspot?.id === hotspot.id;
+                return (
+                  <React.Fragment key={`hist-overlay-${hotspot.id}`}>
+                    {/* Outer Ambient Heat Buffer Ring */}
+                    <MapCircle
+                      center={{ lat: hotspot.lat, lng: hotspot.lng }}
+                      radius={hotspot.radiusMeters * 1.4}
+                      options={{
+                        fillColor: hotspot.colorHex,
+                        fillOpacity: 0.12,
+                        strokeColor: hotspot.colorHex,
+                        strokeOpacity: 0.3,
+                        strokeWeight: 1,
+                      }}
+                      onClick={() => {
+                        setSelectedHistoricalHotspot(hotspot);
+                        setInfoWindowIncident(null);
+                        setSelectedCrew(null);
+                        setSelectedCitizenReport(null);
+                        setSelectedSarZone(null);
+                      }}
+                    />
+
+                    {/* Mid Chronic Risk Impact Ring */}
+                    <MapCircle
+                      center={{ lat: hotspot.lat, lng: hotspot.lng }}
+                      radius={hotspot.radiusMeters * 0.85}
+                      options={{
+                        fillColor: hotspot.colorHex,
+                        fillOpacity: isSelected ? 0.38 : 0.25,
+                        strokeColor: hotspot.colorHex,
+                        strokeOpacity: 0.65,
+                        strokeWeight: isSelected ? 2.5 : 1.5,
+                      }}
+                      onClick={() => {
+                        setSelectedHistoricalHotspot(hotspot);
+                        setInfoWindowIncident(null);
+                        setSelectedCrew(null);
+                        setSelectedCitizenReport(null);
+                        setSelectedSarZone(null);
+                      }}
+                    />
+
+                    {/* Core Infrastructure Failure Center */}
+                    <MapCircle
+                      center={{ lat: hotspot.lat, lng: hotspot.lng }}
+                      radius={Math.max(hotspot.radiusMeters * 0.35, 60)}
+                      options={{
+                        fillColor: '#ef4444',
+                        fillOpacity: isSelected ? 0.55 : 0.42,
+                        strokeColor: '#f87171',
+                        strokeOpacity: 0.85,
+                        strokeWeight: 2,
+                      }}
+                      onClick={() => {
+                        setSelectedHistoricalHotspot(hotspot);
+                        setInfoWindowIncident(null);
+                        setSelectedCrew(null);
+                        setSelectedCitizenReport(null);
+                        setSelectedSarZone(null);
+                      }}
+                    />
+
+                    {/* Centroid Recurrence Flame Marker */}
+                    <AdvancedMarker
+                      position={{ lat: hotspot.lat, lng: hotspot.lng }}
+                      onClick={() => {
+                        setSelectedHistoricalHotspot(hotspot);
+                        setInfoWindowIncident(null);
+                        setSelectedCrew(null);
+                        setSelectedCitizenReport(null);
+                        setSelectedSarZone(null);
+                      }}
+                      title={`Historical Risk Hotspot: ${hotspot.name} (${hotspot.historicalFrequencyScore}% 5-Yr Recurrence)`}
+                    >
+                      <div
+                        style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '12px',
+                          backgroundColor: '#1e112a',
+                          border: `2px solid ${isSelected ? '#f43f5e' : '#f59e0b'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: `0 0 16px ${isSelected ? '#f43f5e' : '#f59e0b'}88`,
+                          cursor: 'pointer',
+                          position: 'relative',
+                          transform: isSelected ? 'scale(1.2)' : 'scale(1)',
+                          transition: 'transform 0.15s ease'
+                        }}
+                      >
+                        <span style={{ fontSize: '16px' }}>🔥</span>
+                        <span
+                          style={{
+                            position: 'absolute',
+                            bottom: '-6px',
+                            right: '-6px',
+                            backgroundColor: '#e11d48',
+                            color: '#fff',
+                            fontSize: '8px',
+                            fontWeight: '900',
+                            padding: '1px 3px',
+                            borderRadius: '4px',
+                            border: '1px solid #881337',
+                            fontFamily: 'monospace',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {hotspot.incidentsCount5Years}x
+                        </span>
+                      </div>
+                    </AdvancedMarker>
+                  </React.Fragment>
+                );
+              })}
 
             {/* Hazard Impact Radius Circles */}
             {showHazardRadius && filteredIncidents.map(inc => {
@@ -778,9 +939,164 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
               </InfoWindow>
             )}
 
+            {/* Historical Risk Hotspot InfoWindow */}
+            {selectedHistoricalHotspot && (
+              <InfoWindow
+                position={{ lat: selectedHistoricalHotspot.lat, lng: selectedHistoricalHotspot.lng }}
+                onCloseClick={() => setSelectedHistoricalHotspot(null)}
+                pixelOffset={[0, -25]}
+              >
+                <div className="text-[#c9d1d9] font-sans p-1.5 max-w-xs sm:max-w-sm space-y-2.5">
+                  
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-2 border-b border-[#30363d] pb-2">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950 text-rose-300 border border-rose-800">
+                          {selectedHistoricalHotspot.vulnerabilityGrade.replace('_', ' ')}
+                        </span>
+                        <span className="text-[10px] font-mono text-cyan-400">
+                          {selectedHistoricalHotspot.ward}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#f0f6fc] leading-snug">
+                        {selectedHistoricalHotspot.name}
+                      </h4>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-600 text-white">
+                      {selectedHistoricalHotspot.historicalFrequencyScore}% 5-Yr Risk
+                    </span>
+                  </div>
+
+                  {/* Telemetry and Recurrence Metrics */}
+                  <div className="grid grid-cols-2 gap-1.5 p-2 rounded-lg bg-[#161b22] border border-[#21262d] font-mono text-[10px]">
+                    <div>
+                      <span className="text-[#8b949e] block">Historical Events</span>
+                      <span className="text-rose-400 font-bold">{selectedHistoricalHotspot.incidentsCount5Years} in 5 Years</span>
+                    </div>
+                    <div>
+                      <span className="text-[#8b949e] block">Zone Buffer</span>
+                      <span className="text-cyan-300 font-bold">{selectedHistoricalHotspot.radiusMeters}m radius</span>
+                    </div>
+                  </div>
+
+                  {/* Recurrence Trigger & Root Cause */}
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="text-[#8b949e]">
+                      <strong className="text-amber-300">⚡ Trigger: </strong>
+                      <span className="text-slate-300">{selectedHistoricalHotspot.recurrenceTrigger}</span>
+                    </div>
+                    <div className="text-[#8b949e]">
+                      <strong className="text-slate-200">🏗️ Root Cause: </strong>
+                      <span className="text-slate-300">{selectedHistoricalHotspot.primaryCause}</span>
+                    </div>
+                  </div>
+
+                  {/* Active Incident Overlap & Comparison */}
+                  {selectedHistoricalHotspot.activeIncidentOverlapId && (
+                    <div className="p-2 rounded-lg bg-amber-950/40 border border-amber-800/60 space-y-1 text-[10px]">
+                      <div className="flex items-center justify-between text-amber-300 font-bold">
+                        <span>🔥 Active Incident Overlap Detected</span>
+                        <span className="font-mono">{selectedHistoricalHotspot.activeIncidentOverlapId}</span>
+                      </div>
+                      <p className="text-amber-200/90 leading-tight">
+                        {selectedHistoricalHotspot.activeIncidentOverlapTitle}
+                      </p>
+                      
+                      {/* Action to select and view active incident */}
+                      {(() => {
+                        const matchingInc = incidents.find(i => i.id === selectedHistoricalHotspot.activeIncidentOverlapId);
+                        if (!matchingInc) return null;
+                        return (
+                          <div className="pt-1 flex items-center justify-end">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onSelectIncident(matchingInc);
+                                setInfoWindowIncident(matchingInc);
+                                setSelectedHistoricalHotspot(null);
+                              }}
+                              className="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white font-bold text-[9px] flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <span>Focus Incident Dossier</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Long-Term Mitigation */}
+                  <div className="pt-1.5 border-t border-[#30363d] text-[10px] text-emerald-400">
+                    <strong className="text-emerald-300">💡 AI Long-Term Plan: </strong>
+                    <span className="text-slate-300">{selectedHistoricalHotspot.longTermMitigationPlan}</span>
+                  </div>
+
+                </div>
+              </InfoWindow>
+            )}
+
           </Map>
         </div>
       </APIProvider>
+
+      {/* FLOATING TOP-CENTER HISTORICAL RISK HEATMAP COMPARISON HUD */}
+      {isHistoricalHeatmapActive && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 pointer-events-auto max-w-xl w-full px-4 hidden md:block">
+          <div className="bg-[#0d1117]/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-rose-500/40 shadow-2xl flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="p-1 rounded-lg bg-rose-500/20 text-rose-400">
+                <Flame className="w-4 h-4" />
+              </span>
+              <div>
+                <div className="font-bold text-white flex items-center gap-1.5">
+                  Historical Risk Heatmap Overlay
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-rose-950 text-rose-300 border border-rose-800">
+                    5-Yr Recurrence
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-400">
+                  Comparing current real-time incidents with 8 chronic infrastructure failure zones.
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Category Switcher */}
+            <div className="flex items-center gap-1">
+              {[
+                { id: 'ALL', label: 'All' },
+                { id: 'WATER_LOGGING', label: '🌊 Flood' },
+                { id: 'DRAINAGE_BLOCKAGE', label: '🚰 Drains' },
+                { id: 'POWER_FAILURE', label: '⚡ Grid' },
+                { id: 'ROAD_SUBSIDENCE', label: '🚧 Roads' }
+              ].map(cat => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleSelectHistoricalCategory(cat.id)}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                    activeHistoricalCategory === cat.id
+                      ? 'bg-rose-600 text-white'
+                      : 'bg-[#161b22] text-[#8b949e] hover:text-white border border-[#30363d]'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => handleToggleHistoricalHeatmap(false)}
+                className="ml-1 text-[10px] font-mono text-slate-400 hover:text-rose-400 p-1 cursor-pointer"
+                title="Hide Historical Heatmap"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TOP COMMAND DASHBOARD & MULTI-FILTER BAR */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 max-w-sm sm:max-w-md pointer-events-auto">
@@ -1069,6 +1385,24 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
               <span className="flex items-center gap-1 font-semibold text-cyan-300">
                 <span className="text-xs">🛰️</span>
                 Sentinel-1 SAR Mask (SegFormer-B2)
+              </span>
+            </label>
+
+            <label className="flex items-center gap-1.5 cursor-pointer select-none col-span-2 pt-1 border-t border-[#21262d]">
+              <input
+                type="checkbox"
+                checked={isHistoricalHeatmapActive}
+                onChange={e => handleToggleHistoricalHeatmap(e.target.checked)}
+                className="rounded bg-[#161b22] border-[#30363d] text-rose-500 focus:ring-0 cursor-pointer"
+              />
+              <span className="flex items-center justify-between w-full font-semibold text-rose-400">
+                <span className="flex items-center gap-1">
+                  <span className="text-xs">🔥</span>
+                  Historical Risk Heatmap (5-Yr)
+                </span>
+                <span className="text-[9px] px-1 py-0.2 rounded bg-rose-950 text-rose-300 border border-rose-800 font-mono">
+                  {HISTORICAL_RISK_HOTSPOTS.length} Zones
+                </span>
               </span>
             </label>
           </div>

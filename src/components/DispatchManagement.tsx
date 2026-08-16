@@ -10,9 +10,13 @@ import {
   Radio, 
   Navigation, 
   Send,
-  UserCheck
+  UserCheck,
+  Crown,
+  Shield,
+  FileCheck2,
+  Lock
 } from 'lucide-react';
-import { MaintenanceCrew, Incident } from '../types';
+import { MaintenanceCrew, Incident, AuthorityLevel } from '../types';
 import confetti from 'canvas-confetti';
 
 interface DispatchManagementProps {
@@ -20,23 +24,41 @@ interface DispatchManagementProps {
   incidents: Incident[];
   onDispatchCrew: (crewId: string, incidentId: string, eta: number) => void;
   onSelectIncident: (incident: Incident) => void;
+  currentAuthority: AuthorityLevel;
+  onRequestEscalation?: (title: string, description: string, ward: string) => void;
+  onOpenAuthorityModal?: () => void;
 }
 
 export const DispatchManagement: React.FC<DispatchManagementProps> = ({
   crews,
   incidents,
   onDispatchCrew,
-  onSelectIncident
+  onSelectIncident,
+  currentAuthority,
+  onRequestEscalation,
+  onOpenAuthorityModal
 }) => {
   const [selectedCrew, setSelectedCrew] = useState<MaintenanceCrew | null>(crews[0] || null);
   const [dispatchIncidentId, setDispatchIncidentId] = useState<string>('');
   const [etaInput, setEtaInput] = useState<number>(15);
 
+  const isSuperMonitor = currentAuthority === 'SUPER_MONITOR';
   const availableIncidents = incidents.filter(i => i.status !== 'RESOLVED' && i.status !== 'CLOSED');
+  const targetIncident = incidents.find(i => i.id === dispatchIncidentId);
+  const isCriticalTarget = targetIncident?.severity === 'CRITICAL';
 
   const handleDispatch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCrew || !dispatchIncidentId) return;
+
+    if (isCriticalTarget && !isSuperMonitor && onRequestEscalation) {
+      // Prompt escalation for critical squad
+      onRequestEscalation(
+        `Critical Heavy Dispatch: ${selectedCrew.name} to ${targetIncident?.title}`,
+        `Duty Monitor requested emergency dispatch of ${selectedCrew.name} (${selectedCrew.equipment.join(', ')}) to ${targetIncident?.location.ward}. Requires Super Monitor authorization.`,
+        targetIncident?.location.ward || 'Municipal Ward'
+      );
+    }
 
     onDispatchCrew(selectedCrew.id, dispatchIncidentId, etaInput);
     confetti({ particleCount: 30, spread: 60 });

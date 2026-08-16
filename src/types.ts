@@ -179,6 +179,28 @@ export interface SegFormerSARWaterlogging {
   };
 }
 
+export interface HistoricalRiskHotspot {
+  id: string;
+  name: string;
+  category: IncidentCategory | 'HEAT_ISLAND';
+  ward: string;
+  lat: number;
+  lng: number;
+  radiusMeters: number;
+  historicalFrequencyScore: number; // 0 - 100
+  incidentsCount5Years: number; // count of recorded incidents from 2021-2025
+  recurrenceTrigger: string; // e.g. '>30mm/hr precipitation or >4.2m high tide'
+  averageSubmersionOrImpact: string; // e.g. '60-75cm water depth'
+  vulnerabilityGrade: 'CHRONIC_P1' | 'HIGH_RECURRENCE_P2' | 'MODERATE_P3';
+  primaryCause: string; // root infrastructure factor
+  activeIncidentOverlapId?: string; // e.g. 'INC-2026-8812'
+  activeIncidentOverlapTitle?: string;
+  activeIncidentCorrelation: string; // analysis of how current matches history
+  longTermMitigationPlan: string;
+  colorHex: string;
+  intensity: number; // 0.0 to 1.0 for heatmap weighting
+}
+
 export interface CityHealthOverview {
   overallScore: number; // e.g. 78/100
   status: string;
@@ -293,3 +315,71 @@ export interface WeatherData {
   radarStatus: 'HEAVY_PRECIPITATION' | 'SCATTERED_SHOWERS' | 'MONSOON_FRONT' | 'CLEAR';
   forecastNext6HoursMm: number[];
 }
+
+export type AuthorityLevel = 'MONITOR' | 'SUPER_MONITOR';
+
+export interface AuthorityPermissions {
+  canViewLiveFeed: boolean;
+  canQueryGisMaps: boolean;
+  canDraftEscalations: boolean;
+  canDispatchRoutineCrew: boolean;
+  canApproveCriticalDispatch: boolean;
+  canBroadcastCitywide: boolean;
+  canTuneAiThresholds: boolean;
+  canOverridePowerGrid: boolean;
+  canSignOffWorkOrders: boolean;
+  canAuditLogs: boolean;
+}
+
+export interface AuthorityUser {
+  id: string;
+  name: string;
+  title: string;
+  level: AuthorityLevel;
+  badgeId: string;
+  department: string;
+  avatar: string;
+  securityClearance: string;
+  pinCode: string;
+  permissions: AuthorityPermissions;
+}
+
+export type ApprovalCategory = 
+  | 'CRITICAL_DISPATCH'
+  | 'EMERGENCY_BROADCAST'
+  | 'SLUICE_GATE_OVERRIDE'
+  | 'GRID_LOCKOUT'
+  | 'TANKER_EMERGENCY_FLEET'
+  | 'AI_THRESHOLD_MOD';
+
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface ApprovalRequest {
+  id: string;
+  requestedAt: string;
+  requestedBy: string;
+  requestedByRole: string;
+  category: ApprovalCategory;
+  title: string;
+  description: string;
+  ward: string;
+  incidentId?: string;
+  urgency: 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  status: ApprovalStatus;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewNotes?: string;
+  digitalSignature?: string;
+}
+
+export interface AuditLogItem {
+  id: string;
+  timestamp: string;
+  actorName: string;
+  actorLevel: AuthorityLevel;
+  actionTitle: string;
+  targetEntity: string;
+  category: string;
+  digitalSignature: string;
+}
+

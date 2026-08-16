@@ -42,9 +42,10 @@ export interface MapCircleProps {
   center: google.maps.LatLngLiteral;
   radius: number;
   options?: google.maps.CircleOptions;
+  onClick?: (e: google.maps.MapMouseEvent) => void;
 }
 
-export const MapCircle: React.FC<MapCircleProps> = ({ center, radius, options }) => {
+export const MapCircle: React.FC<MapCircleProps> = ({ center, radius, options, onClick }) => {
   const map = useMap();
   const circleRef = useRef<google.maps.Circle | null>(null);
 
@@ -59,11 +60,19 @@ export const MapCircle: React.FC<MapCircleProps> = ({ center, radius, options })
     });
     circleRef.current = circle;
 
+    let clickListener: google.maps.MapsEventListener | null = null;
+    if (onClick) {
+      clickListener = circle.addListener('click', onClick);
+    }
+
     return () => {
+      if (clickListener) {
+        google.maps.event.removeListener(clickListener);
+      }
       circle.setMap(null);
       circleRef.current = null;
     };
-  }, [map, center.lat, center.lng, radius, options?.fillColor, options?.fillOpacity, options?.strokeColor]);
+  }, [map, center.lat, center.lng, radius, options?.fillColor, options?.fillOpacity, options?.strokeColor, options?.strokeWeight]);
 
   return null;
 };

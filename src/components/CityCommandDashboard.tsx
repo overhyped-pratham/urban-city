@@ -18,10 +18,15 @@ import {
   Compass,
   MapPin,
   ExternalLink,
-  Radio
+  Radio,
+  Crown,
+  Shield,
+  FileCheck2,
+  Lock,
+  ChevronRight
 } from 'lucide-react';
-import { CityHealthOverview, WardRiskProfile, PredictiveFloodForecast, SegFormerSARWaterlogging } from '../types';
-import { INITIAL_SAR_WATERLOGGING } from '../data/mockData';
+import { CityHealthOverview, WardRiskProfile, PredictiveFloodForecast, SegFormerSARWaterlogging, AuthorityLevel } from '../types';
+import { INITIAL_SAR_WATERLOGGING, AUTHORITY_USERS } from '../data/mockData';
 import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
 
 interface CityCommandDashboardProps {
@@ -32,6 +37,10 @@ interface CityCommandDashboardProps {
   onNavigateTab: (tab: any) => void;
   onSelectWard: (ward: WardRiskProfile) => void;
   onTriggerQuickAction: (action: string) => void;
+  currentAuthority: AuthorityLevel;
+  onOpenAuthorityModal: () => void;
+  onOpenApprovalQueue: () => void;
+  pendingApprovalsCount: number;
 }
 
 export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
@@ -42,10 +51,17 @@ export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
   onNavigateTab,
   onSelectWard,
   onTriggerQuickAction,
+  currentAuthority,
+  onOpenAuthorityModal,
+  onOpenApprovalQueue,
+  pendingApprovalsCount
 }) => {
   const [selectedVector, setSelectedVector] = useState<'ALL' | 'FLOOD' | 'HEAT' | 'WATER' | 'WASTE' | 'ROAD'>('ALL');
   const [simulating, setSimulating] = useState(false);
   const [simulationComplete, setSimulationComplete] = useState(false);
+
+  const activeUser = AUTHORITY_USERS[currentAuthority];
+  const isSuperMonitor = currentAuthority === 'SUPER_MONITOR';
 
   const handleRunSimulation = () => {
     setSimulating(true);
@@ -58,6 +74,59 @@ export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
+      {/* 2-Level Authority Context Bar */}
+      <div className={`p-4 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-md ${
+        isSuperMonitor 
+          ? 'bg-gradient-to-r from-amber-950/70 via-slate-900 to-amber-950/40 border-amber-800/60'
+          : 'bg-gradient-to-r from-cyan-950/70 via-slate-900 to-indigo-950/40 border-cyan-800/60'
+      }`}>
+        <div className="flex items-center gap-3.5">
+          <div className={`p-2.5 rounded-2xl border shadow-inner ${
+            isSuperMonitor 
+              ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' 
+              : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
+          }`}>
+            {isSuperMonitor ? <Crown className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                {isSuperMonitor ? 'Level 2: Super Monitor (Executive Incident Command)' : 'Level 1: Monitor (Duty Telemetry & Operations)'}
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-slate-300">
+                {activeUser.badgeId}
+              </span>
+            </div>
+            <p className="text-xs text-slate-300">
+              Active Officer: <strong className="text-white">{activeUser.name}</strong> • {activeUser.department}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {pendingApprovalsCount > 0 && (
+            <button
+              onClick={onOpenApprovalQueue}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all cursor-pointer"
+            >
+              <FileCheck2 className="w-4 h-4 text-rose-400 animate-pulse" />
+              <span>{pendingApprovalsCount} Escalations Awaiting Sign-Off</span>
+            </button>
+          )}
+
+          <button
+            onClick={onOpenAuthorityModal}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              isSuperMonitor
+                ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black border-amber-400 shadow-md'
+                : 'bg-cyan-600 hover:bg-cyan-500 text-white border-cyan-400 shadow-md'
+            }`}
+          >
+            {isSuperMonitor ? 'Manage Super Monitor Authority' : 'Switch to Super Monitor (L2)'}
+          </button>
+        </div>
+      </div>
+
       {/* Top Banner: Core Philosophy */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/50 p-6 shadow-xl text-white">
         <div className="absolute right-0 top-0 -mt-8 -mr-8 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />

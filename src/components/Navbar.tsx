@@ -16,9 +16,13 @@ import {
   AlertTriangle,
   LayoutDashboard,
   BrainCircuit,
-  Waves
+  Waves,
+  Shield,
+  Crown,
+  FileCheck2
 } from 'lucide-react';
-import { WeatherData, NotificationItem, CityHealthOverview } from '../types';
+import { WeatherData, NotificationItem, CityHealthOverview, AuthorityLevel } from '../types';
+import { AUTHORITY_USERS } from '../data/mockData';
 
 interface NavbarProps {
   activeTab: 'command' | 'map' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics';
@@ -35,6 +39,10 @@ interface NavbarProps {
   isRefreshing: boolean;
   onRefresh: () => void;
   criticalIncidentsCount: number;
+  currentAuthority: AuthorityLevel;
+  onOpenAuthorityModal: () => void;
+  pendingApprovalsCount: number;
+  onOpenApprovalQueue: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -50,8 +58,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   setSoundEnabled,
   isRefreshing,
   onRefresh,
-  criticalIncidentsCount
+  criticalIncidentsCount,
+  currentAuthority,
+  onOpenAuthorityModal,
+  pendingApprovalsCount,
+  onOpenApprovalQueue
 }) => {
+  const activeUser = AUTHORITY_USERS[currentAuthority];
+  const isSuperMonitor = currentAuthority === 'SUPER_MONITOR';
+
   return (
     <header className="bg-slate-950/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-2.5 shadow-xl text-slate-100">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
@@ -81,6 +96,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Quick status pill for mobile */}
           <div className="flex md:hidden items-center gap-2">
+            <button
+              onClick={onOpenAuthorityModal}
+              className={`p-1.5 rounded-lg border flex items-center gap-1 text-[10px] font-bold ${
+                isSuperMonitor
+                  ? 'bg-amber-950 text-amber-300 border-amber-800'
+                  : 'bg-cyan-950 text-cyan-300 border-cyan-800'
+              }`}
+            >
+              {isSuperMonitor ? <Crown className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
+              <span>{isSuperMonitor ? 'L2 Super' : 'L1 Monitor'}</span>
+            </button>
+
             <button
               onClick={onOpenNotifications}
               className="relative p-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
@@ -194,18 +221,55 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </nav>
 
-        {/* Action Controls & Telemetry */}
-        <div className="hidden md:flex items-center gap-2.5">
-          {/* Weather radar tag */}
-          {weather && (
-            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
-              <CloudRain className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-              <span className="text-slate-300 font-medium">{weather.precipitationMmPerHour} mm/h</span>
-              <span className="text-[10px] text-amber-300 font-bold bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-800/60">
-                Monsoon
-              </span>
+        {/* Action Controls & Authority Badge */}
+        <div className="hidden md:flex items-center gap-2">
+          
+          {/* 2-LEVEL AUTHORITY BADGE BUTTON */}
+          <button
+            id="btn-authority-switch"
+            onClick={onOpenAuthorityModal}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-sm group ${
+              isSuperMonitor
+                ? 'bg-amber-950/80 hover:bg-amber-900/90 text-amber-200 border-amber-700/80 shadow-amber-500/10'
+                : 'bg-cyan-950/80 hover:bg-cyan-900/90 text-cyan-200 border-cyan-700/80 shadow-cyan-500/10'
+            }`}
+            title="Click to switch or view 2-Level Authority clearance"
+          >
+            <div className={`p-1 rounded-lg ${
+              isSuperMonitor ? 'bg-amber-500/20 text-amber-400' : 'bg-cyan-500/20 text-cyan-400'
+            }`}>
+              {isSuperMonitor ? <Crown className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
             </div>
-          )}
+            <div className="text-left leading-tight">
+              <div className="text-[9px] font-mono uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                <span>{isSuperMonitor ? 'Level 2' : 'Level 1'}</span>
+                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-ping" />
+              </div>
+              <div className="text-xs font-bold text-white group-hover:text-amber-200 transition-colors">
+                {isSuperMonitor ? 'Super Monitor' : 'Monitor'}
+              </div>
+            </div>
+          </button>
+
+          {/* Pending Approvals Hub Button */}
+          <button
+            id="btn-approval-queue"
+            onClick={onOpenApprovalQueue}
+            className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+              pendingApprovalsCount > 0
+                ? 'bg-rose-950/70 hover:bg-rose-900/80 text-rose-200 border-rose-700/80'
+                : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'
+            }`}
+            title="Open Emergency Approval Ledger & Escalation Queue"
+          >
+            <FileCheck2 className="w-3.5 h-3.5 text-indigo-300" />
+            <span>Escalations</span>
+            {pendingApprovalsCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse">
+                {pendingApprovalsCount}
+              </span>
+            )}
+          </button>
 
           {/* AI Satellite Scan Launcher */}
           <button

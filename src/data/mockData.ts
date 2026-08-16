@@ -10,7 +10,11 @@ import {
   WasteHotspotItem,
   HeatwaveForecastItem,
   WaterSecurityForecastItem,
-  SegFormerSARWaterlogging
+  SegFormerSARWaterlogging,
+  HistoricalRiskHotspot,
+  AuthorityUser,
+  ApprovalRequest,
+  AuditLogItem
 } from '../types';
 
 export const INITIAL_WEATHER: WeatherData = {
@@ -916,4 +920,322 @@ export const INITIAL_SAR_WATERLOGGING: SegFormerSARWaterlogging = {
     latencyMs: 340
   }
 };
+
+export const HISTORICAL_RISK_HOTSPOTS: HistoricalRiskHotspot[] = [
+  {
+    id: 'HIST-HOTSPOT-01',
+    name: 'Sector 4 Metro Underpass & Low-Lying Basin',
+    category: 'WATER_LOGGING',
+    ward: 'Ward G-North (Ward 12)',
+    lat: 19.0760,
+    lng: 72.8777,
+    radiusMeters: 450,
+    historicalFrequencyScore: 96,
+    incidentsCount5Years: 48,
+    recurrenceTrigger: 'Precipitation >32mm/h or Mithi River Spillway level >3.4m',
+    averageSubmersionOrImpact: '65 - 80cm flood depth (Avg 4.2h transit outage)',
+    vulnerabilityGrade: 'CHRONIC_P1',
+    primaryCause: 'Bowl-shaped topographical depression (-1.9m MSL) combined with 600mm undersized storm culvert',
+    activeIncidentOverlapId: 'INC-2026-8812',
+    activeIncidentOverlapTitle: 'Severe Waterlogging - Highway Underpass Sector 4',
+    activeIncidentCorrelation: 'Active incident matches 96% historical pattern: underpass catchment inundated, trapping vehicular transit and threatening 33kV pillar.',
+    longTermMitigationPlan: 'Construct 35,000 m³ underground retention cistern & install twin 1200mm automated dewatering siphon lines (CIP FY27).',
+    colorHex: '#ef4444',
+    intensity: 0.95
+  },
+  {
+    id: 'HIST-HOTSPOT-02',
+    name: 'Tidal Outfall Sluice Gate 14B & North Silt Canal',
+    category: 'DRAINAGE_BLOCKAGE',
+    ward: 'Ward H-East',
+    lat: 19.0620,
+    lng: 72.8620,
+    radiusMeters: 380,
+    historicalFrequencyScore: 91,
+    incidentsCount5Years: 36,
+    recurrenceTrigger: 'High tide peak (>4.1m) during heavy inland monsoon runoff',
+    averageSubmersionOrImpact: 'Sluice backpressure causing 45cm street backflow across 1.8 km²',
+    vulnerabilityGrade: 'CHRONIC_P1',
+    primaryCause: 'Tidal silt accumulation and dense non-biodegradable debris clumps choking flap gate',
+    activeIncidentOverlapId: 'INC-2026-8819',
+    activeIncidentOverlapTitle: 'Primary Storm Canal Plastic & Silt Obstruction',
+    activeIncidentCorrelation: 'Active incident directly mirrors historical blockage profile at Culvert 14B; 78% flow restriction recorded.',
+    longTermMitigationPlan: 'Install automated trash-rack rake screen and motorized vertical lift sluice gates with SCADA telemetry.',
+    colorHex: '#f97316',
+    intensity: 0.88
+  },
+  {
+    id: 'HIST-HOTSPOT-03',
+    name: 'Eastern Industrial 33kV Substation Grid Zone',
+    category: 'POWER_FAILURE',
+    ward: 'Ward L-East',
+    lat: 19.0880,
+    lng: 72.8950,
+    radiusMeters: 550,
+    historicalFrequencyScore: 88,
+    incidentsCount5Years: 29,
+    recurrenceTrigger: 'Transformer busbar thermal delta >12°C during high moisture storm fronts',
+    averageSubmersionOrImpact: 'Sector-wide blackout affecting ~8,500 domestic meters & water pumps',
+    vulnerabilityGrade: 'HIGH_RECURRENCE_P2',
+    primaryCause: 'Subsurface cable trench water ingress & aging SF6 circuit breakers prone to flashovers',
+    activeIncidentOverlapId: 'INC-2026-8815',
+    activeIncidentOverlapTitle: '33kV Substation Outage & Transformer Trip',
+    activeIncidentCorrelation: 'Active blackout is 29th recorded outage in this grid node; thermal anomaly confirmed by Landsat-9 infrared scan.',
+    longTermMitigationPlan: 'Elevate switchgear plinths +1.5m above HFL and convert to gas-insulated substation (GIS) standard.',
+    colorHex: '#a855f7',
+    intensity: 0.82
+  },
+  {
+    id: 'HIST-HOTSPOT-04',
+    name: 'Heritage Market Boulevard Sub-base Corridors',
+    category: 'ROAD_SUBSIDENCE',
+    ward: 'Ward F-South',
+    lat: 19.0490,
+    lng: 72.8450,
+    radiusMeters: 320,
+    historicalFrequencyScore: 84,
+    incidentsCount5Years: 24,
+    recurrenceTrigger: 'High-pressure water main cycles + saturated sandy silt stratum',
+    averageSubmersionOrImpact: 'Pavement cavitation (3-5m diameter craters) & localized flooding',
+    vulnerabilityGrade: 'HIGH_RECURRENCE_P2',
+    primaryCause: '90-year-old cast-iron water distribution main with joint leaks undermining road foundation',
+    activeIncidentOverlapId: 'INC-2026-8822',
+    activeIncidentOverlapTitle: 'Heritage Market Water Main Burst & Subsidence',
+    activeIncidentCorrelation: 'Current burst aligns with historical pipeline rupture cluster at Intersection 44-F.',
+    longTermMitigationPlan: 'Trenchless slip-lining rehabilitation of 2.4km feeder main with ductile iron (DI) class K9 piping.',
+    colorHex: '#eab308',
+    intensity: 0.78
+  },
+  {
+    id: 'HIST-HOTSPOT-05',
+    name: 'Harbor Slum Confluence & Coastal Lowlands',
+    category: 'WATER_LOGGING',
+    ward: 'Ward 4 (Harbor Lowlands)',
+    lat: 19.0550,
+    lng: 72.8520,
+    radiusMeters: 600,
+    historicalFrequencyScore: 98,
+    incidentsCount5Years: 54,
+    recurrenceTrigger: 'Spring tides (>4.5m) or concurrent cloudburst events (>50mm/h)',
+    averageSubmersionOrImpact: 'Widespread 50cm inundation of 2,400 ground-floor informal housing units',
+    vulnerabilityGrade: 'CHRONIC_P1',
+    primaryCause: 'Lack of natural storm drainage gradient and high impervious surface ratio without retaining sea wall',
+    activeIncidentOverlapTitle: 'SAR Detected Coastal Lowland Inundation Mask',
+    activeIncidentCorrelation: 'Directly verified by SegFormer SAR mask (Zone SAR-04B: 890k m² submerged).',
+    longTermMitigationPlan: 'Construct reinforced coastal sea bund, storm pumping station (4x 2000 m³/h), and raised access walkways.',
+    colorHex: '#ef4444',
+    intensity: 0.98
+  },
+  {
+    id: 'HIST-HOTSPOT-06',
+    name: 'Mithi River Canal Spillway & Rail Bridge Chokepoint',
+    category: 'WATER_LOGGING',
+    ward: 'Ward 7 (River Corridor)',
+    lat: 19.0980,
+    lng: 72.8850,
+    radiusMeters: 520,
+    historicalFrequencyScore: 92,
+    incidentsCount5Years: 41,
+    recurrenceTrigger: 'River gauge level >3.8m MSL during upstream catchment release',
+    averageSubmersionOrImpact: 'Rail track ballast submergence (30-45cm) halting suburban train services',
+    vulnerabilityGrade: 'CHRONIC_P1',
+    primaryCause: 'Narrow bridge pier constrictions reducing river discharge cross-section by 42%',
+    activeIncidentOverlapTitle: 'SAR Zone 07C Spillway Overflow',
+    activeIncidentCorrelation: 'Matches historical riverbank overtopping pattern; railway embankment scour warning triggered.',
+    longTermMitigationPlan: 'Deepen and widen river canal channel by 15m; reconstruct central railway pier with single-span girder.',
+    colorHex: '#06b6d4',
+    intensity: 0.91
+  },
+  {
+    id: 'HIST-HOTSPOT-07',
+    name: 'Eastern Highway Industrial Freight Causeway',
+    category: 'ROAD_SUBSIDENCE',
+    ward: 'Ward 18 (Eastern Basin)',
+    lat: 19.0420,
+    lng: 72.8390,
+    radiusMeters: 420,
+    historicalFrequencyScore: 78,
+    incidentsCount5Years: 19,
+    recurrenceTrigger: 'Heavy multi-axle freight traffic on moisture-softened flexible pavement',
+    averageSubmersionOrImpact: 'Deep rutting (>8cm) and multiple alligator crack clusters',
+    vulnerabilityGrade: 'MODERATE_P3',
+    primaryCause: 'Inadequate sub-base drainage and saturated black cotton soil subgrade',
+    activeIncidentOverlapTitle: 'YOLOv11 Detected Heavy Rutting & Road Cracking',
+    activeIncidentCorrelation: 'Correlates with CCTV vision detection of longitudinal road cracks in industrial lane.',
+    longTermMitigationPlan: 'Full-depth rigid pavement reconstruction with geotextile separation membrane and edge subsurface drains.',
+    colorHex: '#f59e0b',
+    intensity: 0.74
+  },
+  {
+    id: 'HIST-HOTSPOT-08',
+    name: 'Central Urban Core Microclimate Heat Island',
+    category: 'HEAT_ISLAND',
+    ward: 'Ward G-South',
+    lat: 19.0150,
+    lng: 72.8280,
+    radiusMeters: 650,
+    historicalFrequencyScore: 82,
+    incidentsCount5Years: 33,
+    recurrenceTrigger: 'Ambient temperature >36°C with relative humidity >70% (Heat Index >46°C)',
+    averageSubmersionOrImpact: '+4.2°C surface temperature anomaly compared to suburban baseline',
+    vulnerabilityGrade: 'HIGH_RECURRENCE_P2',
+    primaryCause: 'Ultra-high concrete density, glass curtain facades, and negligible canopy cover (<4%)',
+    activeIncidentOverlapTitle: 'Heatwave Alert Tier-2 Sector',
+    activeIncidentCorrelation: 'Matches thermal infrared satellite anomaly hot zone requiring mobile misting deployment.',
+    longTermMitigationPlan: 'Cool Roof mandate implementation, 12,000 native tree canopy corridor planting, and cool pavement coatings.',
+    colorHex: '#f43f5e',
+    intensity: 0.85
+  }
+];
+
+export const AUTHORITY_USERS: Record<string, AuthorityUser> = {
+  MONITOR: {
+    id: 'USR-MON-8821',
+    name: 'Officer Vikram Malhotra',
+    title: 'Duty Operations Monitor',
+    level: 'MONITOR',
+    badgeId: 'L1-MON-8821',
+    department: 'Urban Operations Command & Field Telemetry',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    securityClearance: 'Level 1 - Field Monitoring & Operations Clearance',
+    pinCode: '1111',
+    permissions: {
+      canViewLiveFeed: true,
+      canQueryGisMaps: true,
+      canDraftEscalations: true,
+      canDispatchRoutineCrew: true,
+      canApproveCriticalDispatch: false,
+      canBroadcastCitywide: false,
+      canTuneAiThresholds: false,
+      canOverridePowerGrid: false,
+      canSignOffWorkOrders: false,
+      canAuditLogs: true
+    }
+  },
+  SUPER_MONITOR: {
+    id: 'USR-SUP-001A',
+    name: 'Commissioner Dr. Ananya Sen',
+    title: 'Chief Incident Commander & Municipal Commissioner',
+    level: 'SUPER_MONITOR',
+    badgeId: 'L2-EXEC-001A',
+    department: 'Executive Disaster Management & Urban Resilience Bureau',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
+    securityClearance: 'Level 2 - Super Monitor (Executive Command Authority Alpha)',
+    pinCode: '9999',
+    permissions: {
+      canViewLiveFeed: true,
+      canQueryGisMaps: true,
+      canDraftEscalations: true,
+      canDispatchRoutineCrew: true,
+      canApproveCriticalDispatch: true,
+      canBroadcastCitywide: true,
+      canTuneAiThresholds: true,
+      canOverridePowerGrid: true,
+      canSignOffWorkOrders: true,
+      canAuditLogs: true
+    }
+  }
+};
+
+export const INITIAL_APPROVAL_REQUESTS: ApprovalRequest[] = [
+  {
+    id: 'APR-2026-901',
+    requestedAt: '10 mins ago',
+    requestedBy: 'Officer Vikram Malhotra (Monitor L1)',
+    requestedByRole: 'Duty Operations Monitor',
+    category: 'CRITICAL_DISPATCH',
+    title: 'Emergency High-Capacity Dewatering Unit (5000 GPM) Allocation',
+    description: 'Sentinel-1 SAR radar detected rapid 85cm water ingress at Sector 4 Expressway underpass. Critical bus transit artery blocked. Requires immediate diversion of Heavy Dewatering Squad #02 from standby depot.',
+    ward: 'Ward 4 (Industrial Basin)',
+    incidentId: 'INC-2026-8812',
+    urgency: 'CRITICAL',
+    status: 'PENDING'
+  },
+  {
+    id: 'APR-2026-902',
+    requestedAt: '24 mins ago',
+    requestedBy: 'Duty Desk Sector West (Monitor L1)',
+    requestedByRole: 'Duty Operations Monitor',
+    category: 'GRID_LOCKOUT',
+    title: '33kV Industrial Feeder Line Emergency De-Energization',
+    description: 'Submerged step-down transformer detected with active telemetry ground fault arc. Line Linemen crew #01 request remote grid lockout authorization to avert electrocution hazard.',
+    ward: 'Ward 4 (Substation Corridor)',
+    incidentId: 'INC-2026-8814',
+    urgency: 'CRITICAL',
+    status: 'PENDING'
+  },
+  {
+    id: 'APR-2026-903',
+    requestedAt: '38 mins ago',
+    requestedBy: 'Officer Vikram Malhotra (Monitor L1)',
+    requestedByRole: 'Duty Operations Monitor',
+    category: 'EMERGENCY_BROADCAST',
+    title: 'Cell-Broadcast EAS Flash Flood Warning Push to 420,000 Citizens',
+    description: 'TimesFM predicts +58mm cloudburst within next 90 minutes over Low-Lying Eastern Basin. Propose bilingual emergency SMS + cell broadcast sirens to evacuate underpasses.',
+    ward: 'All Municipal Zones',
+    urgency: 'HIGH',
+    status: 'PENDING'
+  },
+  {
+    id: 'APR-2026-898',
+    requestedAt: '2 hours ago',
+    requestedBy: 'Officer Vikram Malhotra (Monitor L1)',
+    requestedByRole: 'Duty Operations Monitor',
+    category: 'SLUICE_GATE_OVERRIDE',
+    title: 'Mahim Sluice Gate #04 Tidal Backflow Valve Release',
+    description: 'High tide peak at 3.8m coinciding with 42mm/h monsoon run-off. Requested motorized sluice gate opening.',
+    ward: 'Ward G-North',
+    urgency: 'HIGH',
+    status: 'APPROVED',
+    reviewedAt: '1 hr 45m ago',
+    reviewedBy: 'Commissioner Dr. Ananya Sen (Super Monitor L2)',
+    reviewNotes: 'Authorized with digital signature. Coordinate with coastal marine patrol.',
+    digitalSignature: 'SIG-SHA256-7FA8991209BCE81D'
+  }
+];
+
+export const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
+  {
+    id: 'AUD-8820',
+    timestamp: '14 mins ago',
+    actorName: 'Officer Vikram Malhotra',
+    actorLevel: 'MONITOR',
+    actionTitle: 'Submitted Escalation Request #APR-2026-901',
+    targetEntity: 'Incident INC-2026-8812 (Sector 4 Dewatering)',
+    category: 'ESCALATION_SUBMIT',
+    digitalSignature: 'SIG-L1-AUTH-90928B'
+  },
+  {
+    id: 'AUD-8819',
+    timestamp: '1 hr 45m ago',
+    actorName: 'Commissioner Dr. Ananya Sen',
+    actorLevel: 'SUPER_MONITOR',
+    actionTitle: 'Approved Sluice Gate Tidal Release #APR-2026-898',
+    targetEntity: 'Mahim Sluice Gate #04',
+    category: 'EXECUTIVE_SIGN_OFF',
+    digitalSignature: 'SIG-SHA256-7FA8991209BCE81D'
+  },
+  {
+    id: 'AUD-8815',
+    timestamp: '3 hrs ago',
+    actorName: 'Commissioner Dr. Ananya Sen',
+    actorLevel: 'SUPER_MONITOR',
+    actionTitle: 'Modified AI SAR Flood Detection Sensitivity',
+    targetEntity: 'SegFormer-B2 Confidence Gate (Set to 70%)',
+    category: 'MODEL_THRESHOLD_TUNE',
+    digitalSignature: 'SIG-SHA256-88220A99443C'
+  },
+  {
+    id: 'AUD-8810',
+    timestamp: '5 hrs ago',
+    actorName: 'Officer Vikram Malhotra',
+    actorLevel: 'MONITOR',
+    actionTitle: 'Dispatched Routine Road Repair Squad #04',
+    targetEntity: 'Pothole Cluster #YOLO-RD-04',
+    category: 'ROUTINE_DISPATCH',
+    digitalSignature: 'SIG-L1-AUTH-11883A'
+  }
+];
+
+
 

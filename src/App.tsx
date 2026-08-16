@@ -17,6 +17,8 @@ import { SatelliteAnalyzerModal } from './components/SatelliteAnalyzerModal';
 import { IncidentDetailModal } from './components/IncidentDetailModal';
 import { PushNotificationCenter } from './components/PushNotificationCenter';
 import { EmergencyBroadcastModal } from './components/EmergencyBroadcastModal';
+import { AuthoritySwitchModal } from './components/AuthoritySwitchModal';
+import { ApprovalQueueModal } from './components/ApprovalQueueModal';
 
 import { 
   Incident, 
@@ -31,7 +33,10 @@ import {
   WasteHotspotItem,
   HeatwaveForecastItem,
   WaterSecurityForecastItem,
-  WardRiskProfile
+  WardRiskProfile,
+  AuthorityLevel,
+  ApprovalRequest,
+  AuditLogItem
 } from './types';
 import { 
   INITIAL_INCIDENTS, 
@@ -44,13 +49,23 @@ import {
   INITIAL_WASTE_HOTSPOTS,
   INITIAL_HEATWAVE,
   INITIAL_WATER_SECURITY,
-  WARD_RISK_PROFILES
+  WARD_RISK_PROFILES,
+  INITIAL_APPROVAL_REQUESTS,
+  INITIAL_AUDIT_LOGS,
+  AUTHORITY_USERS
 } from './data/mockData';
 import { playNotificationChime } from './utils/audio';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'command' | 'map' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics'>('command');
   
+  // 2-Level Authority State (Default: Level 1 Monitor)
+  const [currentAuthority, setCurrentAuthority] = useState<AuthorityLevel>('MONITOR');
+  const [isAuthorityModalOpen, setIsAuthorityModalOpen] = useState(false);
+  const [isApprovalQueueModalOpen, setIsApprovalQueueModalOpen] = useState(false);
+  const [approvalRequests, setApprovalRequests] = useState<ApprovalRequest[]>(INITIAL_APPROVAL_REQUESTS);
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(INITIAL_AUDIT_LOGS);
+
   // Primary datasets
   const [incidents, setIncidents] = useState<Incident[]>(INITIAL_INCIDENTS);
   const [crews, setCrews] = useState<MaintenanceCrew[]>(INITIAL_CREWS);
@@ -74,9 +89,129 @@ export default function App() {
   const [isNotificationsDrawerOpen, setIsNotificationsDrawerOpen] = useState(false);
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
 
+  // Historical Risk Heatmap GIS Layer State
+  const [showHistoricalHeatmap, setShowHistoricalHeatmap] = useState<boolean>(false);
+  const [historicalHeatmapCategory, setHistoricalHeatmapCategory] = useState<string>('ALL');
+
   // System options
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Authority Handlers
+  const handleSwitchAuthority = (level: AuthorityLevel) => {
+    setCurrentAuthority(level);
+    const user = AUTHORITY_USERS[level];
+    if (soundEnabled) playNotificationChime(level === 'SUPER_MONITOR' ? 'critical' : 'info');
+    
+    // Add audit log entry
+    const newLog: AuditLogItem = {
+      id: `AUD-${Date.now().toString().slice(-4)}`,
+      timestamp: 'Just now',
+      actorName: user.name,
+      actorLevel: level,
+      actionTitle: `Switched Session Authority to ${user.title} (${level})`,
+      targetEntity: `Command Session Clearance: ${user.badgeId}`,
+      category: 'SESSION_AUTH_SWITCH',
+      digitalSignature: `SIG-SHA256-${Date.now().toString(16).toUpperCase()}`
+    };
+    setAuditLogs(prev => [newLog, ...prev]);
+  };
+
+  const handleApproveApprovalRequest = (requestId: string, notes?: string) => {
+    const sig = `SIG-SHA256-${Date.now().toString(16).toUpperCase()}`;
+    const targetReq = approvalRequests.find(r => r.id === requestId);
+
+    setApprovalRequests(prev => prev.map(req => {
+      if (req.id === requestId) {
+        return {
+          ...req,
+          status: 'APPROVED',
+          reviewedAt: 'Just now',
+          reviewedBy: 'Commissioner Dr. Ananya Sen (Super Monitor L2)',
+          reviewNotes: notes || 'Authorized under Emergency Operations Protocol.',
+          digitalSignature: sig
+        };
+      }
+      return req;
+    }));
+
+    // Add to audit logs
+    if (targetReq) {
+      const newLog: AuditLogItem = {
+        id: `AUD-${Date.now().toString().slice(-4)}`,
+        timestamp: 'Just now',
+        actorName: 'Commissioner Dr. Ananya Sen',
+        actorLevel: 'SUPER_MONITOR',
+        actionTitle: `Authorized Escalation Ticket #${requestId}`,
+        targetEntity: targetReq.title,
+        category: 'EXECUTIVE_SIGN_OFF',
+        digitalSignature: sig
+      };
+      setAuditLogs(prev => [newLog, ...prev]);
+
+      // Add emergency notification
+      const newNotif: NotificationItem = {
+        id: `notif-${Date.now()}`,
+        timestamp: 'Just now',
+        title: `✅ Super Monitor Sign-Off: ${targetReq.category.replace('_', ' ')}`,
+        message: `Commissioner Dr. Sen signed off on "${targetReq.title}" for ${targetReq.ward}. Tactical orders dispatched.`,
+        type: 'CRITICAL_ALERT',
+        read: false
+      };
+      setNotifications(prev => [newNotif, ...prev]);
+    }
+  };
+
+  const handleRejectApprovalRequest = (requestId: string, notes?: string) => {
+    setApprovalRequests(prev => prev.map(req => {
+      if (req.id === requestId) {
+        return {
+          ...req,
+          status: 'REJECTED',
+          reviewedAt: 'Just now',
+          reviewedBy: 'Commissioner Dr. Ananya Sen (Super Monitor L2)',
+          reviewNotes: notes || 'Rejected pending telemetry corroboration.'
+        };
+      }
+      return req;
+    }));
+  };
+
+  const handleSubmitNewApprovalRequest = (reqData: Omit<ApprovalRequest, 'id' | 'requestedAt' | 'status'>) => {
+    const newReq: ApprovalRequest = {
+      ...reqData,
+      id: `APR-2026-${Math.floor(100 + Math.random() * 900)}`,
+      requestedAt: 'Just now',
+      status: 'PENDING'
+    };
+
+    setApprovalRequests(prev => [newReq, ...prev]);
+
+    // Push notification to user
+    const newNotif: NotificationItem = {
+      id: `notif-${Date.now()}`,
+      timestamp: 'Just now',
+      title: `⚡ Escalation Ticket Submitted: ${newReq.id}`,
+      message: `"${newReq.title}" forwarded to Commissioner Dr. Sen for executive authorization.`,
+      type: 'CRITICAL_ALERT',
+      read: false
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+    if (soundEnabled) playNotificationChime('info');
+  };
+
+  const handleEscalateFromComponent = (title: string, description: string, ward: string) => {
+    handleSubmitNewApprovalRequest({
+      requestedBy: currentAuthority === 'SUPER_MONITOR' ? 'Commissioner Dr. Ananya Sen (Super Monitor)' : 'Officer Vikram Malhotra (Monitor L1)',
+      requestedByRole: currentAuthority === 'SUPER_MONITOR' ? 'Chief Incident Commander' : 'Duty Operations Monitor',
+      category: title.includes('Broadcast') ? 'EMERGENCY_BROADCAST' : 'CRITICAL_DISPATCH',
+      title,
+      description,
+      ward,
+      urgency: 'CRITICAL'
+    });
+    setIsApprovalQueueModalOpen(true);
+  };
 
   // Fetch all live data from backend
   const fetchAllData = useCallback(async () => {
@@ -327,14 +462,15 @@ export default function App() {
     }
   };
 
-  // Unread notifications count
+  // Counts
   const unreadNotifsCount = notifications.filter(n => !n.read).length;
   const criticalIncidentsCount = incidents.filter(i => i.severity === 'CRITICAL' && i.status !== 'RESOLVED').length;
+  const pendingApprovalsCount = approvalRequests.filter(r => r.status === 'PENDING').length;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white font-sans">
       
-      {/* Top Navigation Bar */}
+      {/* Top Navigation Bar with Authority Badge */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -350,6 +486,10 @@ export default function App() {
         isRefreshing={isRefreshing}
         onRefresh={fetchAllData}
         criticalIncidentsCount={criticalIncidentsCount}
+        currentAuthority={currentAuthority}
+        onOpenAuthorityModal={() => setIsAuthorityModalOpen(true)}
+        pendingApprovalsCount={pendingApprovalsCount}
+        onOpenApprovalQueue={() => setIsApprovalQueueModalOpen(true)}
       />
 
       {/* Main View Port */}
@@ -368,6 +508,10 @@ export default function App() {
               onTriggerQuickAction={(act) => {
                 if (act === 'broadcast') setIsBroadcastModalOpen(true);
               }}
+              currentAuthority={currentAuthority}
+              onOpenAuthorityModal={() => setIsAuthorityModalOpen(true)}
+              onOpenApprovalQueue={() => setIsApprovalQueueModalOpen(true)}
+              pendingApprovalsCount={pendingApprovalsCount}
             />
           </div>
         )}
@@ -393,6 +537,10 @@ export default function App() {
               wasteHotspots={wasteHotspots}
               heatwave={heatwave}
               waterSecurity={waterSecurity}
+              showHistoricalHeatmap={showHistoricalHeatmap}
+              onToggleHistoricalHeatmap={setShowHistoricalHeatmap}
+              historicalHeatmapCategory={historicalHeatmapCategory}
+              onSelectHistoricalHeatmapCategory={setHistoricalHeatmapCategory}
               onDispatchCrew={() => setActiveTab('crews')}
               onViewOnMap={() => setActiveTab('map')}
             />
@@ -406,6 +554,10 @@ export default function App() {
             crews={crews}
             citizenReports={citizenReports}
             selectedIncident={selectedIncident}
+            showHistoricalHeatmap={showHistoricalHeatmap}
+            onToggleHistoricalHeatmap={setShowHistoricalHeatmap}
+            historicalHeatmapCategory={historicalHeatmapCategory}
+            onSelectHistoricalHeatmapCategory={setHistoricalHeatmapCategory}
             onSelectIncident={handleSelectIncident}
             onOpenDispatchForIncident={handleOpenDispatchForIncident}
             onOpenSatelliteAnalyzer={() => setIsSatelliteModalOpen(true)}
@@ -433,6 +585,9 @@ export default function App() {
               incidents={incidents}
               onDispatchCrew={handleAssignCrew}
               onSelectIncident={handleSelectIncident}
+              currentAuthority={currentAuthority}
+              onRequestEscalation={handleEscalateFromComponent}
+              onOpenAuthorityModal={() => setIsAuthorityModalOpen(true)}
             />
           </div>
         )}
@@ -456,6 +611,31 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* Authority Clearance Switcher Modal */}
+      <AuthoritySwitchModal
+        isOpen={isAuthorityModalOpen}
+        onClose={() => setIsAuthorityModalOpen(false)}
+        currentAuthority={currentAuthority}
+        onSwitchAuthority={handleSwitchAuthority}
+        pendingApprovalsCount={pendingApprovalsCount}
+        auditLogs={auditLogs}
+      />
+
+      {/* Escalations & Approvals Queue Modal */}
+      <ApprovalQueueModal
+        isOpen={isApprovalQueueModalOpen}
+        onClose={() => setIsApprovalQueueModalOpen(false)}
+        currentAuthority={currentAuthority}
+        approvalRequests={approvalRequests}
+        onApproveRequest={handleApproveApprovalRequest}
+        onRejectRequest={handleRejectApprovalRequest}
+        onSubmitNewRequest={handleSubmitNewApprovalRequest}
+        onOpenAuthorityModal={() => {
+          setIsApprovalQueueModalOpen(false);
+          setIsAuthorityModalOpen(true);
+        }}
+      />
 
       {/* Satellite AI Scanner Modal */}
       <SatelliteAnalyzerModal
@@ -491,8 +671,12 @@ export default function App() {
         isOpen={isBroadcastModalOpen}
         onClose={() => setIsBroadcastModalOpen(false)}
         onSendBroadcast={handleSendBroadcast}
+        currentAuthority={currentAuthority}
+        onRequestEscalation={handleEscalateFromComponent}
+        onOpenAuthorityModal={() => setIsAuthorityModalOpen(true)}
       />
 
     </div>
   );
 }
+

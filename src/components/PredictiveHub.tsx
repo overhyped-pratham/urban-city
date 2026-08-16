@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Waves, 
   Construction, 
@@ -20,7 +20,12 @@ import {
   Activity, 
   FileText,
   ThermometerSun,
-  Maximize2
+  Maximize2,
+  TrendingUp,
+  History,
+  Eye,
+  Info,
+  ChevronRight
 } from 'lucide-react';
 import { 
   PredictiveFloodForecast, 
@@ -28,9 +33,10 @@ import {
   WasteHotspotItem, 
   HeatwaveForecastItem, 
   WaterSecurityForecastItem,
-  SegFormerSARWaterlogging
+  SegFormerSARWaterlogging,
+  HistoricalRiskHotspot
 } from '../types';
-import { INITIAL_SAR_WATERLOGGING } from '../data/mockData';
+import { INITIAL_SAR_WATERLOGGING, HISTORICAL_RISK_HOTSPOTS, INITIAL_INCIDENTS } from '../data/mockData';
 import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
 
 interface PredictiveHubProps {
@@ -40,6 +46,10 @@ interface PredictiveHubProps {
   heatwave: HeatwaveForecastItem;
   waterSecurity: WaterSecurityForecastItem;
   sarData?: SegFormerSARWaterlogging;
+  showHistoricalHeatmap?: boolean;
+  onToggleHistoricalHeatmap?: (active: boolean) => void;
+  historicalHeatmapCategory?: string;
+  onSelectHistoricalHeatmapCategory?: (cat: string) => void;
   onDispatchCrew?: (crewType: string, ward: string) => void;
   onViewOnMap?: () => void;
 }
@@ -51,11 +61,44 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
   heatwave,
   waterSecurity,
   sarData = INITIAL_SAR_WATERLOGGING,
+  showHistoricalHeatmap = false,
+  onToggleHistoricalHeatmap,
+  historicalHeatmapCategory = 'ALL',
+  onSelectHistoricalHeatmapCategory,
   onDispatchCrew,
   onViewOnMap
 }) => {
   const [activeEngine, setActiveEngine] = useState<'FLOOD' | 'ROAD' | 'WASTE' | 'HEAT' | 'WATER'>('FLOOD');
   
+  // Local fallback if not controlled from parent
+  const [localHeatmapActive, setLocalHeatmapActive] = useState(false);
+  const isHeatmapActive = onToggleHistoricalHeatmap ? showHistoricalHeatmap : localHeatmapActive;
+  
+  const handleToggleHeatmap = (active: boolean) => {
+    setLocalHeatmapActive(active);
+    onToggleHistoricalHeatmap?.(active);
+  };
+
+  const [localCategory, setLocalCategory] = useState<string>('ALL');
+  const activeCategory = onSelectHistoricalHeatmapCategory ? historicalHeatmapCategory : localCategory;
+  const handleCategorySelect = (cat: string) => {
+    setLocalCategory(cat);
+    onSelectHistoricalHeatmapCategory?.(cat);
+  };
+
+  const [timeHorizon, setTimeHorizon] = useState<'5YR_BASELINE' | '3YR_EXTREMES' | '10YR_CLIMATE'>('5YR_BASELINE');
+  const [selectedHotspotId, setSelectedHotspotId] = useState<string>(HISTORICAL_RISK_HOTSPOTS[0].id);
+
+  // Filter historical hotspots by active category
+  const filteredHotspots = useMemo(() => {
+    if (activeCategory === 'ALL') return HISTORICAL_RISK_HOTSPOTS;
+    return HISTORICAL_RISK_HOTSPOTS.filter(h => h.category === activeCategory);
+  }, [activeCategory]);
+
+  const selectedHotspot = useMemo(() => {
+    return HISTORICAL_RISK_HOTSPOTS.find(h => h.id === selectedHotspotId) || HISTORICAL_RISK_HOTSPOTS[0];
+  }, [selectedHotspotId]);
+
   // Road Vision tester state
   const [selectedRoadItem, setSelectedRoadItem] = useState<YoloRoadDamageDetection>(roadDamages[0]);
   const [isScanningPhoto, setIsScanningPhoto] = useState(false);
@@ -66,6 +109,11 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
 
   const handleDispatchWasteTruck = (hotspotId: string) => {
     setDispatchedTrucks(prev => ({ ...prev, [hotspotId]: true }));
+  };
+
+  const handleOpenMapWithHeatmap = () => {
+    handleToggleHeatmap(true);
+    onViewOnMap?.();
   };
 
   return (
@@ -145,6 +193,334 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
             <span>Water Security</span>
           </button>
         </div>
+      </div>
+
+      {/* HISTORICAL RISK HEATMAP OVERLAY & INCIDENT CORRELATION CONTROL CENTER */}
+      <div className="bg-gradient-to-br from-slate-900 via-[#0f172a] to-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-white space-y-6">
+        
+        {/* Top Control Bar with Master Toggle */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800/80">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400">
+                <History className="w-5 h-5" />
+              </span>
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2.5">
+                  Historical Risk Heatmaps &amp; Incident Correlation Engine
+                  <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    5-Yr PostGIS Archive (2021-2025)
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Overlay empirical high-recurrence hazard density zones on the GIS map to compare current live incidents against chronic infrastructure failure corridors.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Master Map Overlay Toggle Control */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-800/90 border border-slate-700/80 shadow-inner">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-200">Overlay on Map View</span>
+                <span className="text-[10px] font-mono text-slate-400">
+                  {isHeatmapActive ? '🔥 Heatmap Layer Active' : 'Layer Disabled'}
+                </span>
+              </div>
+              
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isHeatmapActive}
+                onClick={() => handleToggleHeatmap(!isHeatmapActive)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  isHeatmapActive ? 'bg-rose-500' : 'bg-slate-700'
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                    isHeatmapActive ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenMapWithHeatmap}
+              className="px-4 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition-all shadow-lg active:scale-95 flex items-center gap-2 cursor-pointer"
+            >
+              <Eye className="w-4 h-4" />
+              <span>Inspect Overlay on GIS Map</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Statistical Summary Ribbon */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[11px] text-slate-400 font-medium">Incident Correlation</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-black text-rose-400">87.5%</span>
+              <span className="text-[10px] text-emerald-400 font-bold">7 / 8 Matched</span>
+            </div>
+            <span className="text-[10px] text-slate-400 mt-1">Active incidents fall inside chronic zones</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[11px] text-slate-400 font-medium">Chronic Risk Hotspots</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-black text-white">{HISTORICAL_RISK_HOTSPOTS.length}</span>
+              <span className="text-[10px] text-rose-400 font-mono font-bold">4 P1 Chronic</span>
+            </div>
+            <span className="text-[10px] text-slate-400 mt-1">Underpasses, canals &amp; 33kV substations</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[11px] text-slate-400 font-medium">Historical 5-Yr Event Log</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-black text-cyan-400">284</span>
+              <span className="text-[10px] text-slate-400 font-mono">Events (2021-25)</span>
+            </div>
+            <span className="text-[10px] text-slate-400 mt-1">Indexed with rainfall &amp; tidal heads</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[11px] text-slate-400 font-medium">Top Failure Mode</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-base font-bold text-amber-400">Hydraulic Bowl</span>
+            </div>
+            <span className="text-[10px] text-slate-400 mt-1">Topographical depression (-1.9m MSL)</span>
+          </div>
+        </div>
+
+        {/* Hazard Filters & Time Horizon */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          {/* Category Chips */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-slate-400 font-semibold mr-1">Hazard Category:</span>
+            {[
+              { id: 'ALL', label: 'All Hazards', count: HISTORICAL_RISK_HOTSPOTS.length },
+              { id: 'WATER_LOGGING', label: '🌊 Flood Basins', count: 3 },
+              { id: 'DRAINAGE_BLOCKAGE', label: '🚰 Sluice Clogs', count: 1 },
+              { id: 'POWER_FAILURE', label: '⚡ 33kV Substation', count: 1 },
+              { id: 'ROAD_SUBSIDENCE', label: '🚧 Subsidence', count: 2 },
+              { id: 'HEAT_ISLAND', label: '🔥 Heat Island', count: 1 }
+            ].map(cat => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => handleCategorySelect(cat.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeCategory === cat.id
+                    ? 'bg-rose-500 text-white shadow-md'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/60'
+                }`}
+              >
+                {cat.label} ({cat.count})
+              </button>
+            ))}
+          </div>
+
+          {/* Time Horizon Selector */}
+          <div className="flex items-center gap-1 p-1 bg-slate-800/80 rounded-xl border border-slate-700/70 text-xs">
+            <button
+              onClick={() => setTimeHorizon('5YR_BASELINE')}
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                timeHorizon === '5YR_BASELINE' ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              5-Yr Baseline (2021-25)
+            </button>
+            <button
+              onClick={() => setTimeHorizon('3YR_EXTREMES')}
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                timeHorizon === '3YR_EXTREMES' ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Extreme Storms (&gt;50mm/h)
+            </button>
+            <button
+              onClick={() => setTimeHorizon('10YR_CLIMATE')}
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                timeHorizon === '10YR_CLIMATE' ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              10-Yr Climate Trend
+            </button>
+          </div>
+        </div>
+
+        {/* Master Comparison Split Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+          
+          {/* Left Column: Historical Hotspots List */}
+          <div className="lg:col-span-5 space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between pb-1">
+              <span>Historical Recurrence Clusters ({filteredHotspots.length})</span>
+              <span className="text-[11px] font-mono text-rose-400">Click to Compare</span>
+            </div>
+
+            {filteredHotspots.map(hotspot => {
+              const isSelected = hotspot.id === selectedHotspot.id;
+              const hasActiveOverlap = Boolean(hotspot.activeIncidentOverlapId || hotspot.activeIncidentOverlapTitle);
+
+              return (
+                <div
+                  key={hotspot.id}
+                  onClick={() => setSelectedHotspotId(hotspot.id)}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-slate-800/90 border-rose-500 shadow-md ring-1 ring-rose-500/50'
+                      : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/70 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: hotspot.colorHex }}
+                        />
+                        <span className="text-xs font-bold text-white line-clamp-1">
+                          {hotspot.name}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">{hotspot.ward}</p>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-rose-950 text-rose-300 border border-rose-800">
+                        {hotspot.historicalFrequencyScore}% Recurrence
+                      </span>
+                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                        {hotspot.incidentsCount5Years} events in 5 yrs
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Overlap indicator tag */}
+                  {hasActiveOverlap && (
+                    <div className="mt-2.5 pt-2 border-t border-slate-700/50 flex items-center justify-between text-[11px]">
+                      <span className="flex items-center gap-1.5 text-amber-300 font-medium">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span className="line-clamp-1">{hotspot.activeIncidentOverlapTitle || 'Active Incident Overlap'}</span>
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-mono font-bold">MATCHED</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Right Column: In-Depth Incident vs Historical Comparison Card */}
+          <div className="lg:col-span-7 bg-slate-800/70 border border-slate-700 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+            <div className="space-y-4">
+              
+              {/* Header */}
+              <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-700">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">
+                      {selectedHotspot.vulnerabilityGrade.replace('_', ' ')}
+                    </span>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-xs text-slate-300 font-medium">{selectedHotspot.ward}</span>
+                  </div>
+                  <h3 className="text-base font-bold text-white leading-tight">
+                    {selectedHotspot.name}
+                  </h3>
+                </div>
+
+                <div className="text-right">
+                  <span className="px-3 py-1 rounded-xl text-xs font-mono font-black bg-rose-500 text-white shadow-sm">
+                    {selectedHotspot.historicalFrequencyScore}/100 Risk Score
+                  </span>
+                  <div className="text-[11px] text-slate-400 mt-1 font-mono">
+                    Radius: {selectedHotspot.radiusMeters}m zone
+                  </div>
+                </div>
+              </div>
+
+              {/* Side-by-Side Comparison Matrix */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Current Live Telemetry vs. 5-Year Empirical Baseline
+                </span>
+                
+                <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/80 font-mono text-xs">
+                  <div className="space-y-2 border-r border-slate-800 pr-2">
+                    <div className="text-[10px] text-cyan-400 font-bold uppercase">Real-Time Incident State</div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Status / ID</span>
+                      <span className="font-bold text-white">{selectedHotspot.activeIncidentOverlapId || 'SAR Monitored'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Live Inundation / Depth</span>
+                      <span className="font-bold text-cyan-300">
+                        {selectedHotspot.category === 'WATER_LOGGING' ? '72 cm (Severe)' : 'Active telemetry verified'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pl-2">
+                    <div className="text-[10px] text-rose-400 font-bold uppercase">5-Year Historical Mean</div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Historical Event Count</span>
+                      <span className="font-bold text-white">{selectedHotspot.incidentsCount5Years} logged events</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Empirical Avg Impact</span>
+                      <span className="font-bold text-amber-300">{selectedHotspot.averageSubmersionOrImpact}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recurrence Trigger & Root Cause */}
+              <div className="space-y-2.5 text-xs">
+                <div className="p-3 rounded-xl bg-slate-800/90 border border-slate-700/60 space-y-1">
+                  <span className="text-slate-400 font-semibold block text-[11px]">Empirical Recurrence Trigger:</span>
+                  <p className="text-slate-200 font-medium">⚡ {selectedHotspot.recurrenceTrigger}</p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-800/90 border border-slate-700/60 space-y-1">
+                  <span className="text-slate-400 font-semibold block text-[11px]">Root Infrastructure Contributing Factor:</span>
+                  <p className="text-slate-200 leading-relaxed">🏗️ {selectedHotspot.primaryCause}</p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/50 space-y-1">
+                  <span className="text-emerald-400 font-semibold block text-[11px]">AI Long-Term Capital Improvement Plan (CIP):</span>
+                  <p className="text-emerald-200 leading-relaxed">💡 {selectedHotspot.longTermMitigationPlan}</p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="pt-3 border-t border-slate-700 flex items-center justify-between gap-3">
+              <span className="text-[11px] text-slate-400 font-mono">
+                PostGIS Kernel Density Estimation (KDE)
+              </span>
+
+              <button
+                type="button"
+                onClick={handleOpenMapWithHeatmap}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>View {selectedHotspot.name.slice(0, 20)}... On Map</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
       {/* 1. FLOOD ENGINE TAB */}
