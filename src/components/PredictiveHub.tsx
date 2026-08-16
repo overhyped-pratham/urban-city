@@ -38,6 +38,7 @@ import {
 } from '../types';
 import { INITIAL_SAR_WATERLOGGING, HISTORICAL_RISK_HOTSPOTS, INITIAL_INCIDENTS } from '../data/mockData';
 import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
+import { MaintenanceTrendAnalysis } from './MaintenanceTrendAnalysis';
 
 interface PredictiveHubProps {
   floodForecast: PredictiveFloodForecast;
@@ -68,7 +69,7 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
   onDispatchCrew,
   onViewOnMap
 }) => {
-  const [activeEngine, setActiveEngine] = useState<'FLOOD' | 'ROAD' | 'WASTE' | 'HEAT' | 'WATER'>('FLOOD');
+  const [activeEngine, setActiveEngine] = useState<'FLOOD' | 'ROAD' | 'WASTE' | 'HEAT' | 'WATER' | 'MAINTENANCE'>('FLOOD');
   
   // Local fallback if not controlled from parent
   const [localHeatmapActive, setLocalHeatmapActive] = useState(false);
@@ -191,6 +192,18 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
           >
             <Droplets className="w-3.5 h-3.5" />
             <span>Water Security</span>
+          </button>
+
+          <button
+            onClick={() => setActiveEngine('MAINTENANCE')}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeEngine === 'MAINTENANCE'
+                ? 'bg-pink-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Maintenance Trends (30-Day)</span>
           </button>
         </div>
       </div>
@@ -1049,6 +1062,43 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 6. MAINTENANCE TREND ANALYSIS ENGINE TAB */}
+      {activeEngine === 'MAINTENANCE' && (
+        <div className="space-y-6">
+          <MaintenanceTrendAnalysis 
+            onDispatchCrew={onDispatchCrew}
+            onSelectWard={() => onViewOnMap?.()}
+          />
+        </div>
+      )}
+
+      {/* Persistent Maintenance Trend Analysis Section when not on MAINTENANCE tab */}
+      {activeEngine !== 'MAINTENANCE' && (
+        <div className="pt-4">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-pink-500/10 text-pink-400 border border-pink-500/20">
+                <TrendingUp className="w-4 h-4" />
+              </span>
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+                Predicted Infrastructure Degradation & Maintenance Trends
+              </h3>
+            </div>
+            <button
+              onClick={() => setActiveEngine('MAINTENANCE')}
+              className="text-xs font-semibold text-pink-600 hover:text-pink-700 flex items-center gap-1 cursor-pointer"
+            >
+              <span>Expand Full 30-Day Trend Engine</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <MaintenanceTrendAnalysis 
+            onDispatchCrew={onDispatchCrew}
+            onSelectWard={() => onViewOnMap?.()}
+          />
         </div>
       )}
     </div>
