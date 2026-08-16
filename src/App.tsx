@@ -306,6 +306,8 @@ export default function App() {
             onSelectIncident={handleSelectIncident}
             onOpenDispatchForIncident={handleOpenDispatchForIncident}
             onOpenSatelliteAnalyzer={() => setIsSatelliteModalOpen(true)}
+            onUpdateStatus={handleUpdateStatus}
+            onAssignCrew={handleAssignCrew}
           />
         )}
 

@@ -1,13 +1,8 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
 import { INITIAL_INCIDENTS, INITIAL_CREWS, INITIAL_CITIZEN_REPORTS, WARD_RISK_PROFILES, INITIAL_WEATHER } from './src/data/mockData.ts';
 import { Incident, MaintenanceCrew, CitizenReport, NotificationItem } from './src/types.ts';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3000;
@@ -615,6 +610,7 @@ app.post('/api/notifications/broadcast', (req, res) => {
 // ----------------------------------------------------
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
