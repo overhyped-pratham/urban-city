@@ -1,6 +1,6 @@
 {
-  "name": "UrbanWatch Sentinel - Satellite & Municipal Incident Command",
-  "description": "Real-time AI satellite surveillance and municipal dispatch system detecting urban waterlogging, power outages, drainage blockages, and community-verified emergency reports.",
+  "name": "Urban Resilience AI",
+  "description": "Predictive smart-city AI operating system forecasting urban risks (flooding, heatwaves, water stress, road degradation, waste accumulation) and recommending preventive municipal actions.",
   "requestFramePermissions": [
     "geolocation",
     "camera"

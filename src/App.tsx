@@ -5,6 +5,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
+import { CityCommandDashboard } from './components/CityCommandDashboard';
+import { AICommandCenter } from './components/AICommandCenter';
+import { PredictiveHub } from './components/PredictiveHub';
 import { SatelliteMap } from './components/SatelliteMap';
 import { IncidentListView } from './components/IncidentListView';
 import { DispatchManagement } from './components/DispatchManagement';
@@ -15,12 +18,38 @@ import { IncidentDetailModal } from './components/IncidentDetailModal';
 import { PushNotificationCenter } from './components/PushNotificationCenter';
 import { EmergencyBroadcastModal } from './components/EmergencyBroadcastModal';
 
-import { Incident, MaintenanceCrew, CitizenReport, NotificationItem, WeatherData, IncidentStatus } from './types';
-import { INITIAL_INCIDENTS, INITIAL_CREWS, INITIAL_CITIZEN_REPORTS, INITIAL_WEATHER } from './data/mockData';
+import { 
+  Incident, 
+  MaintenanceCrew, 
+  CitizenReport, 
+  NotificationItem, 
+  WeatherData, 
+  IncidentStatus,
+  CityHealthOverview,
+  PredictiveFloodForecast,
+  YoloRoadDamageDetection,
+  WasteHotspotItem,
+  HeatwaveForecastItem,
+  WaterSecurityForecastItem,
+  WardRiskProfile
+} from './types';
+import { 
+  INITIAL_INCIDENTS, 
+  INITIAL_CREWS, 
+  INITIAL_CITIZEN_REPORTS, 
+  INITIAL_WEATHER,
+  INITIAL_CITY_HEALTH,
+  INITIAL_PREDICTIVE_FLOOD,
+  INITIAL_ROAD_DAMAGES,
+  INITIAL_WASTE_HOTSPOTS,
+  INITIAL_HEATWAVE,
+  INITIAL_WATER_SECURITY,
+  WARD_RISK_PROFILES
+} from './data/mockData';
 import { playNotificationChime } from './utils/audio';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'map' | 'incidents' | 'crews' | 'analytics' | 'community'>('map');
+  const [activeTab, setActiveTab] = useState<'command' | 'map' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics'>('command');
   
   // Primary datasets
   const [incidents, setIncidents] = useState<Incident[]>(INITIAL_INCIDENTS);
@@ -28,6 +57,15 @@ export default function App() {
   const [citizenReports, setCitizenReports] = useState<CitizenReport[]>(INITIAL_CITIZEN_REPORTS);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [weather, setWeather] = useState<WeatherData | null>(INITIAL_WEATHER);
+
+  // Resilience AI datasets
+  const [cityHealth, setCityHealth] = useState<CityHealthOverview>(INITIAL_CITY_HEALTH);
+  const [predictiveFlood, setPredictiveFlood] = useState<PredictiveFloodForecast>(INITIAL_PREDICTIVE_FLOOD);
+  const [roadDamages, setRoadDamages] = useState<YoloRoadDamageDetection[]>(INITIAL_ROAD_DAMAGES);
+  const [wasteHotspots, setWasteHotspots] = useState<WasteHotspotItem[]>(INITIAL_WASTE_HOTSPOTS);
+  const [heatwave, setHeatwave] = useState<HeatwaveForecastItem>(INITIAL_HEATWAVE);
+  const [waterSecurity, setWaterSecurity] = useState<WaterSecurityForecastItem>(INITIAL_WATER_SECURITY);
+  const [wardProfiles, setWardProfiles] = useState<WardRiskProfile[]>(WARD_RISK_PROFILES);
 
   // Modals & Drawers state
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
@@ -44,12 +82,15 @@ export default function App() {
   const fetchAllData = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      const [incRes, crewRes, citRes, notifRes, analyticsRes] = await Promise.all([
+      const [incRes, crewRes, citRes, notifRes, analyticsRes, resilienceRes, roadRes, wasteRes] = await Promise.all([
         fetch('/api/incidents'),
         fetch('/api/crews'),
         fetch('/api/citizen-reports'),
         fetch('/api/notifications'),
-        fetch('/api/analytics')
+        fetch('/api/analytics'),
+        fetch('/api/resilience/overview'),
+        fetch('/api/resilience/road-intelligence'),
+        fetch('/api/resilience/waste-intelligence')
       ]);
 
       if (incRes.ok) {
@@ -72,6 +113,22 @@ export default function App() {
         const data = await analyticsRes.json();
         if (data.weather) setWeather(data.weather);
       }
+      if (resilienceRes.ok) {
+        const data = await resilienceRes.json();
+        if (data.cityHealth) setCityHealth(data.cityHealth);
+        if (data.predictiveFlood) setPredictiveFlood(data.predictiveFlood);
+        if (data.wardRiskProfiles) setWardProfiles(data.wardRiskProfiles);
+        if (data.heatwaveForecast) setHeatwave(data.heatwaveForecast);
+        if (data.waterSecurity) setWaterSecurity(data.waterSecurity);
+      }
+      if (roadRes.ok) {
+        const data = await roadRes.json();
+        if (data.roadDamages) setRoadDamages(data.roadDamages);
+      }
+      if (wasteRes.ok) {
+        const data = await wasteRes.json();
+        if (data.hotspots) setWasteHotspots(data.hotspots);
+      }
     } catch (err) {
       console.warn('Backend fetch fallback to local state:', err);
     } finally {
@@ -81,7 +138,6 @@ export default function App() {
 
   useEffect(() => {
     fetchAllData();
-    // Periodic refresh
     const interval = setInterval(fetchAllData, 20000);
     return () => clearInterval(interval);
   }, [fetchAllData]);
@@ -276,13 +332,14 @@ export default function App() {
   const criticalIncidentsCount = incidents.filter(i => i.severity === 'CRITICAL' && i.status !== 'RESOLVED').length;
 
   return (
-    <div className="min-h-screen bg-[#05060a] text-[#c9d1d9] flex flex-col selection:bg-cyan-500 selection:text-[#05060a] font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white font-sans">
       
       {/* Top Navigation Bar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         weather={weather}
+        cityHealth={cityHealth}
         notifications={notifications}
         unreadNotifsCount={unreadNotifsCount}
         onOpenNotifications={() => setIsNotificationsDrawerOpen(true)}
@@ -297,6 +354,51 @@ export default function App() {
 
       {/* Main View Port */}
       <main className="flex-1 w-full relative">
+        {/* Command Dashboard */}
+        {activeTab === 'command' && (
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <CityCommandDashboard
+              cityHealth={cityHealth}
+              wardProfiles={wardProfiles}
+              floodForecast={predictiveFlood}
+              onNavigateTab={setActiveTab}
+              onSelectWard={(ward) => {
+                setActiveTab('map');
+              }}
+              onTriggerQuickAction={(act) => {
+                if (act === 'broadcast') setIsBroadcastModalOpen(true);
+              }}
+            />
+          </div>
+        )}
+
+        {/* AI Command Center Copilot */}
+        {activeTab === 'copilot' && (
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <AICommandCenter
+              onTriggerAction={(actionType) => {
+                if (actionType === 'BROADCAST') setIsBroadcastModalOpen(true);
+                if (actionType === 'DISPATCH') setActiveTab('crews');
+              }}
+            />
+          </div>
+        )}
+
+        {/* Predictive Intelligence Hub */}
+        {activeTab === 'predictive' && (
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <PredictiveHub
+              floodForecast={predictiveFlood}
+              roadDamages={roadDamages}
+              wasteHotspots={wasteHotspots}
+              heatwave={heatwave}
+              waterSecurity={waterSecurity}
+              onDispatchCrew={() => setActiveTab('crews')}
+            />
+          </div>
+        )}
+
+        {/* GIS Map */}
         {activeTab === 'map' && (
           <SatelliteMap
             incidents={incidents}
@@ -311,23 +413,30 @@ export default function App() {
           />
         )}
 
+        {/* Incident List */}
         {activeTab === 'incidents' && (
-          <IncidentListView
-            incidents={incidents}
-            onSelectIncident={handleSelectIncident}
-            onOpenSatelliteAnalyzer={() => setIsSatelliteModalOpen(true)}
-          />
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <IncidentListView
+              incidents={incidents}
+              onSelectIncident={handleSelectIncident}
+              onOpenSatelliteAnalyzer={() => setIsSatelliteModalOpen(true)}
+            />
+          </div>
         )}
 
+        {/* Dispatch Management */}
         {activeTab === 'crews' && (
-          <DispatchManagement
-            crews={crews}
-            incidents={incidents}
-            onDispatchCrew={handleAssignCrew}
-            onSelectIncident={handleSelectIncident}
-          />
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <DispatchManagement
+              crews={crews}
+              incidents={incidents}
+              onDispatchCrew={handleAssignCrew}
+              onSelectIncident={handleSelectIncident}
+            />
+          </div>
         )}
 
+        {/* Citizen Reporting & NLP */}
         {activeTab === 'community' && (
           <CommunityReporting
             reports={citizenReports}
@@ -337,10 +446,13 @@ export default function App() {
           />
         )}
 
+        {/* Historical Trends */}
         {activeTab === 'analytics' && (
-          <HistoricalTrends
-            incidents={incidents}
-          />
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <HistoricalTrends
+              incidents={incidents}
+            />
+          </div>
         )}
       </main>
 

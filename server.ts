@@ -1,7 +1,19 @@
 import express from 'express';
 import path from 'path';
 import { GoogleGenAI, Type } from '@google/genai';
-import { INITIAL_INCIDENTS, INITIAL_CREWS, INITIAL_CITIZEN_REPORTS, WARD_RISK_PROFILES, INITIAL_WEATHER } from './src/data/mockData.ts';
+import {
+  INITIAL_INCIDENTS,
+  INITIAL_CREWS,
+  INITIAL_CITIZEN_REPORTS,
+  WARD_RISK_PROFILES,
+  INITIAL_WEATHER,
+  INITIAL_CITY_HEALTH,
+  INITIAL_PREDICTIVE_FLOOD,
+  INITIAL_ROAD_DAMAGES,
+  INITIAL_WASTE_HOTSPOTS,
+  INITIAL_HEATWAVE,
+  INITIAL_WATER_SECURITY
+} from './src/data/mockData.ts';
 import { Incident, MaintenanceCrew, CitizenReport, NotificationItem } from './src/types.ts';
 
 const app = express();
@@ -574,6 +586,282 @@ app.get('/api/analytics', (req, res) => {
     historicalHourlyTrends,
     weather: INITIAL_WEATHER
   });
+});
+
+// ----------------------------------------------------
+// URBAN RESILIENCE AI PREDICTIVE ENDPOINTS
+// ----------------------------------------------------
+
+let cityHealth = { ...INITIAL_CITY_HEALTH };
+let predictiveFlood = { ...INITIAL_PREDICTIVE_FLOOD };
+let roadDamages = [...INITIAL_ROAD_DAMAGES];
+let wasteHotspots = [...INITIAL_WASTE_HOTSPOTS];
+let heatwaveForecast = { ...INITIAL_HEATWAVE };
+let waterSecurity = { ...INITIAL_WATER_SECURITY };
+
+// Resilience Overview API
+app.get('/api/resilience/overview', (req, res) => {
+  res.json({
+    cityHealth,
+    wardRiskProfiles: WARD_RISK_PROFILES,
+    predictiveFlood,
+    heatwaveForecast,
+    waterSecurity,
+    activeRoadDamagesCount: roadDamages.length,
+    activeWasteHotspotsCount: wasteHotspots.length
+  });
+});
+
+// Flood Prediction Model API (TimesFM / TFT simulation)
+app.get('/api/resilience/flood-forecast', (req, res) => {
+  res.json({ floodForecast: predictiveFlood });
+});
+
+// Road & Infrastructure Intelligence (YOLOv11 Detection API)
+app.get('/api/resilience/road-intelligence', (req, res) => {
+  res.json({ roadDamages });
+});
+
+// Waste Hotspot Intelligence API
+app.get('/api/resilience/waste-intelligence', (req, res) => {
+  res.json({ wasteHotspots });
+});
+
+// Heatwave Prediction API (LightGBM simulation)
+app.get('/api/resilience/heatwave-forecast', (req, res) => {
+  res.json({ heatwave: heatwaveForecast });
+});
+
+// Water Security Intelligence API
+app.get('/api/resilience/water-security', (req, res) => {
+  res.json({ waterSecurity });
+});
+
+// AI Smart City Copilot (Gemini 2.5 Flash with live urban context)
+app.post('/api/ai-copilot', async (req, res) => {
+  const { prompt, conversationHistory = [] } = req.body;
+
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'Prompt is required' });
+  }
+
+  const gemini = getGeminiClient();
+
+  // Create context from current state
+  const urbanContext = `
+CURRENT CITY STATUS:
+- City Health Score: ${cityHealth.overallScore}/100 (${cityHealth.status})
+- Multi-vector risks: Flood ${cityHealth.floodRisk}%, Heat ${cityHealth.heatRisk}%, Water ${cityHealth.waterRisk}%, Waste ${cityHealth.wasteRisk}%, Road ${cityHealth.roadRisk}%.
+- High Risk Wards:
+  * Ward 12 (Central): Flood 87%, Roads 78%, Waste 72%. Expected rain: 126mm. High-risk roads: 7. Recommended action: Inspect drainage + deploy 2x pumps.
+  * Ward 4 (North Basin): Flood 92%, Roads 84%, Waste 81%. Expected rain: 142mm. Recommended action: Pre-position flood boat & dispatch waste compactor.
+  * Ward 7 (Industrial): Flood 65%, Heat 68%, Transformer fault on 33kV line.
+  * Ward 18 (Hillside Valley): Water Stress 88%, Heat 74%, Reservoir capacity low.
+  * Ward 9 (Upper Heights): Water Stress 82%, Heat 62%.
+- TimesFM Flood Model: 87% flood probability with peak inundation between 6:00 PM and 9:00 PM.
+- LightGBM Heat Model: Peak temp 44.2°C, Heat Index 48.6°C. 14 cooling centres active.
+- Water Security: Reservoir at 48.2%, groundwater depletion index 74.5. 5-day stress in Ward 18 and Ward 9.
+- Road Infrastructure: P1 potholes on Arterial Ring Road and Alligator Cracking on Express Flyover.
+- Waste Hotspots: Hotspot #12 overflowing in 6h, Hotspot #04 critical overflow.
+`;
+
+  // Fallback if no API key
+  if (!gemini) {
+    let responseText = '';
+    const p = prompt.toLowerCase();
+
+    if (p.includes('flood') || p.includes('rain') || p.includes('tomorrow')) {
+      responseText = `### 🌊 Flood Risk Forecast Summary (TimesFM / SegFormer Model)
+
+**Highest Risk Zones:**
+1. **Ward 4 (North Basin / Kurla / Saki Naka)** — **92% Flood Probability** | Peak: 6:00 PM – 9:00 PM | Expected Rain: 142mm
+2. **Ward 12 (Central Civic Core)** — **87% Flood Probability** | Peak: 6:00 PM – 9:00 PM | Expected Rain: 126mm
+3. **Ward 7 (Industrial Ring)** — **65% Flood Probability** | Peak: 7:30 PM | Expected Rain: 98mm
+
+**Root Causes:**
+* Heavy monsoonal convective front (42.5mm/hr peak intensity).
+* Silt clogs & debris obstruction at Sluice Gate 14B.
+* Saturated soil capacity (92% saturation index) causing immediate surface runoff.
+
+**Recommended Preventive Actions:**
+1. **Pre-position 2x 150HP Dewatering Pumps** at Sector 4 arterial underpass.
+2. **Dispatch Silt Clearance Crew** to Tidal Sluice Gate 14B.
+3. **Issue automated geofenced push alerts** to 14,000 residents in low-lying sectors.
+4. **Pre-position rescue units** at Station 3.`;
+    } else if (p.includes('ward 18') || p.includes('water')) {
+      responseText = `### 💧 Ward 18 Water Security Assessment
+
+**Water Stress Index: 88/100 (HIGH)**
+
+**Underlying Causes:**
+1. **Low Reservoir Reserves:** Upstream feeder reservoir operating at 48.2% storage capacity.
+2. **High Consumption Spike:** Ambient heat (44.2°C) driving a 28% surge in local municipal draw.
+3. **Declining Groundwater Table:** Groundwater depletion index at 74.5%.
+4. **Pipeline Pressure Drop:** Pressure telemetry on the Eastern Valley trunk line indicates a probable 15-20% subterranean distribution leakage.
+
+**Recommended Preventive Actions:**
+1. **Dispatch 6 Emergency Municipal Water Tankers** to Ward 18 distribution points.
+2. **Conduct acoustic sensor inspection** on the Main 400mm feeder line.
+3. **Activate booster pumps** during non-peak morning hours (05:00 - 08:00).`;
+    } else if (p.includes('pothole') || p.includes('road') || p.includes('infrastructure')) {
+      responseText = `### 🛣️ Road & Infrastructure Degradation Priority Audit (YOLOv11 Vision)
+
+**Active Severe Defects:**
+* **Arterial Ring Road (Ward 12):** Severe 3.8m² pothole (14cm depth) — **Priority P1** (Urgency: 24-48 hours).
+* **Express Flyover Descent (Ward 4):** 6.2m² Alligator Cracking — **Priority P1** (Urgency: 24-48 hours).
+* **Market Link Road (Ward 7):** Dislodged Manhole Frame — **Priority P2** (Urgency: 3-5 days).
+
+**Recommended Preventive Action:**
+* Authorize immediate night-shift cold-mix asphalt mastic deployment for Arterial Ring Road to prevent rim damage and monsoon water infiltration into the road sub-base.`;
+    } else {
+      responseText = `### 🛡️ Urban Resilience AI - Municipal Decision Briefing
+
+**Overall City Health Score:** **${cityHealth.overallScore}/100**
+
+**Key Priority Vectors:**
+* **🌊 Flooding:** High probability (87%) expected this evening in Ward 4 & Ward 12.
+* **🌡️ Extreme Heat:** Peak temperatures reaching 44.2°C. 14 public cooling centres operational.
+* **💧 Water Stress:** Ward 18 & Ward 9 facing 4 to 5 day supply deficit without tanker augmentation.
+* **🗑️ Waste Overflow:** Hotspot #12 approaching capacity in 6 hours.
+
+**Top Recommended Preventive Directive:**
+Pre-position dewatering pumps in Ward 12 and dispatch a secondary garbage compactor to Hotspot #04 before the 6:00 PM evening monsoon peak.`;
+    }
+
+    return res.json({
+      message: {
+        id: `COPILOT-MSG-${Date.now()}`,
+        role: 'assistant',
+        content: responseText,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  // Live Gemini generation
+  try {
+    const systemInstruction = `You are the Urban Resilience AI Copilot — the primary municipal decision-support operating system for smart city authorities.
+Your mission is: "Don't wait for the city to break. Predict what will break next."
+You synthesize real-time data across weather, satellite radar, GIS, drainage, roads, waste, heat, and water.
+
+Always structure your responses clearly using Markdown with:
+1. Executive Risk Summary with key metrics and probabilities
+2. Root Cause Breakdown (e.g. low reservoir + heat + pipe leakage)
+3. Actionable Preventive Decision Steps (concrete instructions for municipal commissioners, engineers, and crew squads).
+
+Keep your tone authoritative, precise, actionable, and objective.
+
+${urbanContext}`;
+
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction,
+        temperature: 0.2,
+      }
+    });
+
+    const aiText = response.text || 'Unable to generate copilot analysis.';
+
+    return res.json({
+      message: {
+        id: `COPILOT-MSG-${Date.now()}`,
+        role: 'assistant',
+        content: aiText,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (err: any) {
+    console.error('Gemini Copilot error:', err);
+    return res.status(500).json({ error: err.message || 'AI Copilot processing error' });
+  }
+});
+
+// Citizen Complaint NLP Classification API (Gemini NLP extraction)
+app.post('/api/nlp-complaint', async (req, res) => {
+  const { text, photoUrl, userName = 'Citizen User', locationText } = req.body;
+
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({ error: 'Complaint text is required' });
+  }
+
+  const gemini = getGeminiClient();
+
+  let parsed = {
+    problem: 'Urban Infrastructure Hazard',
+    location: locationText || 'Central Ward Sector',
+    ward: 'Ward 12',
+    severity: 'HIGH' as const,
+    category: 'WATER_LOGGING' as const,
+    department: 'Stormwater Drainage & Flood Control',
+    recommendedAction: 'Dispatch local maintenance crew for ground assessment',
+    confidenceScore: 92
+  };
+
+  if (gemini) {
+    try {
+      const response = await gemini.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Extract the structured complaint information from this citizen report:
+"${text}"
+Location mentioned: "${locationText || ''}"
+
+Return a JSON object with:
+- problem (concise title, max 6 words)
+- location (specific landmark or street)
+- ward (one of "Ward 12", "Ward 4", "Ward 7", "Ward 18", "Ward 9")
+- severity ("CRITICAL", "HIGH", "MEDIUM", "LOW")
+- category ("WATER_LOGGING", "POWER_FAILURE", "DRAINAGE_BLOCKAGE", "ROAD_SUBSIDENCE", "SEWAGE_OVERFLOW")
+- department (e.g. "Stormwater Drainage Dept", "Roads & Highway Authority", "Solid Waste Management", "Electricity Board", "Water Supply Dept")
+- recommendedAction (1 sentence instruction)`,
+        config: {
+          responseMimeType: 'application/json',
+          temperature: 0.1
+        }
+      });
+
+      if (response.text) {
+        const json = JSON.parse(response.text);
+        parsed = { ...parsed, ...json };
+      }
+    } catch (e) {
+      console.warn('NLP fallback used:', e);
+    }
+  }
+
+  // Create new citizen report
+  const newReport: CitizenReport = {
+    id: `CIT-NLP-${Date.now().toString().slice(-4)}`,
+    reportedAt: new Date().toISOString(),
+    userName,
+    location: {
+      lat: 19.0760 + (Math.random() - 0.5) * 0.02,
+      lng: 72.8777 + (Math.random() - 0.5) * 0.02,
+      address: parsed.location || 'Municipal Sector Core',
+      ward: parsed.ward || 'Ward 12',
+      zone: 'Zone II'
+    },
+    category: parsed.category as any,
+    description: text,
+    photoUrl: photoUrl || 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=600&q=80',
+    upvotes: 1,
+    verifiedByMunicipal: true
+  };
+
+  citizenReports.unshift(newReport);
+
+  // Trigger notification
+  notifications.unshift({
+    id: `NOTIF-NLP-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    title: `CITIZEN NLP AUTO-ROUTED: ${parsed.problem}`,
+    message: `Routed to ${parsed.department} (${parsed.severity} priority) for ${parsed.location}.`,
+    type: 'CITIZEN_REPORT',
+    read: false
+  });
+
+  res.status(201).json({ success: true, report: newReport, parsed });
 });
 
 // Notifications & Emergency Broadcast API

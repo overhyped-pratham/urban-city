@@ -12,7 +12,10 @@ import {
   ShieldCheck, 
   Clock, 
   Sparkles,
-  Send
+  Send,
+  Wand2,
+  Building2,
+  AlertTriangle
 } from 'lucide-react';
 import { CitizenReport, IncidentCategory, Incident } from '../types';
 import confetti from 'canvas-confetti';
@@ -30,19 +33,54 @@ export const CommunityReporting: React.FC<CommunityReportingProps> = ({
   onSubmitReport,
   onVerifyReport
 }) => {
-  const [userName, setUserName] = useState('');
-  const [userPhone, setUserPhone] = useState('');
+  const [userName, setUserName] = useState('Ananya Sharma');
+  const [userPhone, setUserPhone] = useState('+91 98201 44829');
   const [address, setAddress] = useState('');
-  const [ward, setWard] = useState('Ward G-North');
+  const [ward, setWard] = useState('Ward 12');
   const [category, setCategory] = useState<IncidentCategory>('WATER_LOGGING');
   const [waterLevel, setWaterLevel] = useState<'ANKLE_DEEP' | 'KNEE_DEEP' | 'WAIST_DEEP' | 'VEHICLES_SUBMERGED'>('KNEE_DEEP');
   const [description, setDescription] = useState('');
   const [photoUrl, setPhotoUrl] = useState('https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=600&q=80');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNlpExtracting, setIsNlpExtracting] = useState(false);
+  const [nlpDepartment, setNlpDepartment] = useState<string | null>(null);
+
+  // Quick NLP extraction from free-text
+  const handleNlpExtract = async () => {
+    if (!description.trim()) return;
+    setIsNlpExtracting(true);
+    try {
+      const res = await fetch('/api/nlp-complaint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: description,
+          userName,
+          locationText: address,
+          photoUrl
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.parsed) {
+          if (data.parsed.category) setCategory(data.parsed.category);
+          if (data.parsed.ward) setWard(data.parsed.ward);
+          if (data.parsed.location && !address) setAddress(data.parsed.location);
+          if (data.parsed.department) setNlpDepartment(data.parsed.department);
+          confetti({ particleCount: 35, spread: 60 });
+        }
+      }
+    } catch (e) {
+      console.warn('NLP extraction fallback', e);
+    } finally {
+      setIsNlpExtracting(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName || !address || !description) return;
+    if (!userName || !description) return;
 
     setIsSubmitting(true);
 
@@ -52,7 +90,7 @@ export const CommunityReporting: React.FC<CommunityReportingProps> = ({
       location: {
         lat: 19.0760 + (Math.random() - 0.5) * 0.02,
         lng: 72.8777 + (Math.random() - 0.5) * 0.02,
-        address,
+        address: address || 'Sector Road Link',
         ward,
         zone: 'Zone II'
       },
@@ -63,10 +101,11 @@ export const CommunityReporting: React.FC<CommunityReportingProps> = ({
     };
 
     onSubmitReport(newReport);
-    confetti({ particleCount: 30, spread: 50 });
+    confetti({ particleCount: 40, spread: 70 });
 
-    // Reset form fields
     setDescription('');
+    setAddress('');
+    setNlpDepartment(null);
     setIsSubmitting(false);
   };
 
@@ -83,270 +122,229 @@ export const CommunityReporting: React.FC<CommunityReportingProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-      
       {/* Title */}
-      <div>
-        <h2 className="text-xl font-bold text-[#f0f6fc] flex items-center gap-2">
-          <Users className="w-6 h-6 text-cyan-400" />
-          Citizen Ground-Truth & Community Verification Portal
-        </h2>
-        <p className="text-xs text-[#8b949e] font-mono">
-          Crowdsourced Verification Cross-Correlated with Satellite Telemetry
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold uppercase tracking-wider mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            Citizen Intelligence &amp; NLP Routing
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Users className="w-6 h-6 text-indigo-600" />
+            Citizen Ground-Truth &amp; Incident Reporting Portal
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Crowdsourced reports cross-correlated with satellite radar and automatically categorized by Gemini NLP for direct municipal department dispatch.
+          </p>
+        </div>
       </div>
 
       {/* Main Grid: Submit Form (Left) & Live Feed (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Left: Citizen Report Form (5 cols) */}
-        <div className="lg:col-span-5 p-5 rounded-2xl bg-[#0d1117] border border-[#21262d] shadow-xl space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#21262d]">
-            <h3 className="text-sm font-bold text-[#f0f6fc] flex items-center gap-2">
-              <Camera className="w-4 h-4 text-cyan-400" />
-              Submit Ground-Truth Observation
+        {/* Form Column */}
+        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <div className="border-b border-slate-100 pb-3">
+            <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+              <Camera className="w-4 h-4 text-indigo-600" />
+              Report Urban Hazard
             </h3>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
-              GPS Verified
-            </span>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Input problem details or paste natural text for AI automated classification
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Quick Natural Language AI Box */}
+            <div className="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                  <Wand2 className="w-3.5 h-3.5 text-indigo-600" />
+                  NLP Auto-Extraction
+                </span>
+                <button
+                  type="button"
+                  onClick={handleNlpExtract}
+                  disabled={!description.trim() || isNlpExtracting}
+                  className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-semibold transition-all disabled:opacity-40 flex items-center gap-1"
+                >
+                  {isNlpExtracting ? 'Analyzing...' : 'Auto-Classify with AI'}
+                </button>
+              </div>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                placeholder="e.g., 'Road near XYZ school has a huge pothole and water is overflowing from the drain slab'"
+                className="w-full p-2.5 bg-white border border-indigo-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+              {nlpDepartment && (
+                <div className="p-2 rounded bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  Auto-routed to: <strong>{nlpDepartment}</strong>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-[#8b949e] mb-1">Your Full Name</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Your Name</label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. Ramesh Patel"
                   value={userName}
-                  onChange={e => setUserName(e.target.value)}
-                  className="w-full bg-[#05060a] border border-[#21262d] rounded-xl px-3 py-2 text-xs text-[#c9d1d9] placeholder-[#8b949e] focus:outline-none focus:border-cyan-500"
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900"
+                  required
                 />
               </div>
-
               <div>
-                <label className="block text-[11px] font-semibold text-[#8b949e] mb-1">Phone Number (Optional)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
                 <input
-                  type="tel"
-                  placeholder="e.g. +91 98200 12345"
+                  type="text"
                   value={userPhone}
-                  onChange={e => setUserPhone(e.target.value)}
-                  className="w-full bg-[#05060a] border border-[#21262d] rounded-xl px-3 py-2 text-xs text-[#c9d1d9] placeholder-[#8b949e] focus:outline-none focus:border-cyan-500"
+                  onChange={(e) => setUserPhone(e.target.value)}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-[#8b949e] mb-1">Hazard Category</label>
-                <select
-                  value={category}
-                  onChange={e => setCategory(e.target.value as IncidentCategory)}
-                  className="w-full bg-[#05060a] border border-[#21262d] rounded-xl px-3 py-2 text-xs text-[#c9d1d9] focus:outline-none focus:border-cyan-500"
-                >
-                  <option value="WATER_LOGGING">Water Logging / Flooding</option>
-                  <option value="POWER_FAILURE">Power Outage / Sparks</option>
-                  <option value="DRAINAGE_BLOCKAGE">Drainage / Sluice Clog</option>
-                  <option value="ROAD_SUBSIDENCE">Road Cavity / Burst Pipe</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8b949e] mb-1">Municipal Ward</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Municipal Ward</label>
                 <select
                   value={ward}
-                  onChange={e => setWard(e.target.value)}
-                  className="w-full bg-[#05060a] border border-[#21262d] rounded-xl px-3 py-2 text-xs text-[#c9d1d9] focus:outline-none focus:border-cyan-500"
+                  onChange={(e) => setWard(e.target.value)}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900"
                 >
-                  <option value="Ward G-North">Ward G-North (Dadar / Mahim)</option>
-                  <option value="Ward L-East">Ward L-East (Kurla / Saki Naka)</option>
-                  <option value="Ward H-East">Ward H-East (Bandra East / Khar)</option>
-                  <option value="Ward F-South">Ward F-South (Parel / Sewri)</option>
-                  <option value="Ward K-West">Ward K-West (Andheri / Juhu)</option>
+                  <option value="Ward 12">Ward 12 (Central Civic Core)</option>
+                  <option value="Ward 4">Ward 4 (North Basin)</option>
+                  <option value="Ward 7">Ward 7 (Industrial Ring)</option>
+                  <option value="Ward 18">Ward 18 (Eastern Hillside)</option>
+                  <option value="Ward 9">Ward 9 (Upper Heights)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as IncidentCategory)}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900"
+                >
+                  <option value="WATER_LOGGING">🌊 Waterlogging / Flood</option>
+                  <option value="DRAINAGE_BLOCKAGE">🕳️ Drainage / Silt Clog</option>
+                  <option value="ROAD_SUBSIDENCE">🛣️ Pothole / Road Damage</option>
+                  <option value="POWER_FAILURE">⚡ Power / Transformer</option>
+                  <option value="SEWAGE_OVERFLOW">🗑️ Waste / Overflow</option>
                 </select>
               </div>
             </div>
 
-            {category === 'WATER_LOGGING' && (
-              <div>
-                <label className="block text-[11px] font-semibold text-[#8b949e] mb-1">Observed Water Depth</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
-                  {[
-                    { id: 'ANKLE_DEEP', label: 'Ankle (~15cm)' },
-                    { id: 'KNEE_DEEP', label: 'Knee (~45cm)' },
-                    { id: 'WAIST_DEEP', label: 'Waist (~80cm)' },
-                    { id: 'VEHICLES_SUBMERGED', label: 'Vehicles Submerged' },
-                  ].map(w => (
-                    <button
-                      type="button"
-                      key={w.id}
-                      onClick={() => setWaterLevel(w.id as typeof waterLevel)}
-                      className={`p-1.5 rounded-lg border text-[11px] font-semibold transition-all ${
-                        waterLevel === w.id
-                          ? 'bg-cyan-500 text-[#05060a] border-cyan-400 font-bold'
-                          : 'bg-[#05060a] border-[#21262d] text-[#8b949e] hover:text-[#c9d1d9]'
-                      }`}
-                    >
-                      {w.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             <div>
-              <label className="block text-[11px] font-semibold text-[#8b949e] mb-1">Exact Location / Landmark</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Specific Landmark or Street Address</label>
               <input
                 type="text"
-                required
-                placeholder="e.g. Near Sunshine Tower, Underpass Service Road"
                 value={address}
-                onChange={e => setAddress(e.target.value)}
-                className="w-full bg-[#05060a] border border-[#21262d] rounded-xl px-3 py-2 text-xs text-[#c9d1d9] placeholder-[#8b949e] focus:outline-none focus:border-cyan-500"
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g. Underpass near Sector 4 bus depot"
+                className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-[#8b949e] mb-1">Description of Situation</label>
-              <textarea
-                required
-                rows={3}
-                placeholder="Describe current severity, stranded vehicles, sparks, or blocked culverts..."
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                className="w-full bg-[#05060a] border border-[#21262d] rounded-xl p-3 text-xs text-[#c9d1d9] placeholder-[#8b949e] focus:outline-none focus:border-cyan-500 resize-none"
-              />
-            </div>
-
-            {/* Photo Upload or Preset */}
-            <div>
-              <label className="block text-[11px] font-semibold text-[#8b949e] mb-1">Ground Evidence Photo</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Photo Evidence</label>
               <div className="flex items-center gap-3">
-                <img
-                  src={photoUrl}
-                  alt="Evidence Preview"
-                  className="w-16 h-16 rounded-xl object-cover border border-[#21262d]"
-                />
-                <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed border-[#30363d] hover:border-cyan-500 bg-[#05060a] text-[#c9d1d9] hover:text-white text-xs font-semibold cursor-pointer transition-all">
-                  <Upload className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Choose Photo / Camera</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                  />
+                <img src={photoUrl} alt="Preview" className="w-14 h-14 rounded-lg object-cover border border-slate-200" />
+                <label className="cursor-pointer px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors">
+                  <Upload className="w-3.5 h-3.5" />
+                  Upload Photo
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                 </label>
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-[#05060a] font-bold text-xs shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              disabled={isSubmitting || !description.trim()}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-40"
             >
               <Send className="w-4 h-4" />
-              <span>Submit Ground-Truth Report</span>
+              Submit Citizen Ground Report
             </button>
-
           </form>
         </div>
 
-        {/* Right: Community Corroboration Feed (7 cols) */}
+        {/* Live Feed Column */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-[#8b949e] uppercase tracking-wider">
-              Crowdsourced Verification Stream ({reports.length} Reports)
-            </h3>
-            <span className="text-xs text-cyan-400 font-mono flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              AI Cross-Correlation Active
-            </span>
-          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                  Verified Community Ground Reports ({reports.length})
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Citizen corroborations mapped against satellite radar &amp; IoT sensors
+                </p>
+              </div>
+            </div>
 
-          <div className="space-y-3">
-            {reports.map(rep => {
-              const matchedIncident = incidents.find(i => i.id === rep.matchedIncidentId);
-
-              return (
-                <div
-                  key={rep.id}
-                  className="p-4 rounded-2xl bg-[#0d1117]/95 border border-[#21262d] backdrop-blur-md space-y-3 shadow-lg"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-800 flex items-center justify-center text-xs font-bold text-cyan-400 font-mono">
-                        {rep.userName.charAt(0)}
+            <div className="divide-y divide-slate-100 mt-2">
+              {reports.map((report) => (
+                <div key={report.id} className="py-4 flex flex-col sm:flex-row items-start gap-4">
+                  <img
+                    src={report.photoUrl}
+                    alt="Citizen Upload"
+                    className="w-full sm:w-28 h-24 rounded-xl object-cover border border-slate-200 shrink-0"
+                  />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-xs">{report.userName}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">
+                          {report.location.ward}
+                        </span>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-[#f0f6fc]">{rep.userName}</h4>
-                        <p className="text-[10px] text-[#8b949e] font-mono">
-                          {rep.location.ward} • {new Date(rep.reportedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(report.reportedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
 
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      rep.category === 'WATER_LOGGING' ? 'bg-sky-950 text-sky-300 border border-sky-800' :
-                      rep.category === 'POWER_FAILURE' ? 'bg-amber-950 text-amber-300 border border-amber-800' :
-                      'bg-purple-950 text-purple-300 border border-purple-800'
-                    }`}>
-                      {rep.category.replace('_', ' ')}
-                    </span>
-                  </div>
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                      {report.description}
+                    </p>
 
-                  {/* Body text & Image */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                    {rep.photoUrl && (
-                      <img
-                        src={rep.photoUrl}
-                        alt="Citizen proof"
-                        className="sm:col-span-4 w-full h-24 object-cover rounded-xl border border-[#21262d]"
-                      />
-                    )}
-                    <div className={rep.photoUrl ? 'sm:col-span-8' : 'sm:col-span-12'}>
-                      <p className="text-xs text-[#c9d1d9] leading-relaxed">
-                        "{rep.description}"
-                      </p>
-                      {rep.waterLevelDescription && (
-                        <div className="mt-2 inline-block px-2 py-0.5 rounded bg-[#05060a] border border-[#21262d] text-[10px] font-mono text-cyan-400">
-                          Water Level: {rep.waterLevelDescription.replace('_', ' ')}
-                        </div>
-                      )}
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                      <MapPin className="w-3 h-3 text-indigo-500 shrink-0" />
+                      <span>{report.location.address}</span>
                     </div>
-                  </div>
 
-                  {/* Satellite Match & Verification Bar */}
-                  <div className="pt-3 border-t border-[#21262d] flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
-                    {matchedIncident ? (
-                      <span className="text-emerald-400 flex items-center gap-1.5 font-semibold">
-                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                        Correlated with Satellite Pass ({matchedIncident.id})
-                      </span>
-                    ) : (
-                      <span className="text-[#8b949e] flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        Awaiting Satellite Pass Alignment
-                      </span>
-                    )}
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-2">
+                        {report.verifiedByMunicipal ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                            <CheckCircle2 className="w-3 h-3" /> Municipal Verified
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400">Pending Field Verification</span>
+                        )}
+                      </div>
 
-                    <button
-                      onClick={() => onVerifyReport(rep.id)}
-                      className="px-3 py-1.5 rounded-lg bg-[#161b22] hover:bg-[#21262d] text-[#c9d1d9] hover:text-white flex items-center gap-1.5 text-xs font-sans font-semibold transition-all cursor-pointer border border-[#30363d]"
-                    >
-                      <ThumbsUp className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>Confirm ({rep.upvotes})</span>
-                    </button>
+                      <button
+                        onClick={() => onVerifyReport(report.id)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors"
+                      >
+                        <ThumbsUp className="w-3.5 h-3.5" />
+                        Upvote ({report.upvotes})
+                      </button>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
-
       </div>
-
     </div>
   );
 };

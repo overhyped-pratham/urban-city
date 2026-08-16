@@ -1,4 +1,16 @@
-import { Incident, MaintenanceCrew, CitizenReport, WardRiskProfile, WeatherData } from '../types';
+import { 
+  Incident, 
+  MaintenanceCrew, 
+  CitizenReport, 
+  WardRiskProfile, 
+  WeatherData,
+  CityHealthOverview,
+  PredictiveFloodForecast,
+  YoloRoadDamageDetection,
+  WasteHotspotItem,
+  HeatwaveForecastItem,
+  WaterSecurityForecastItem
+} from '../types';
 
 export const INITIAL_WEATHER: WeatherData = {
   city: 'Metropolitan Urban District',
@@ -423,13 +435,218 @@ export const INITIAL_CITIZEN_REPORTS: CitizenReport[] = [
   }
 ];
 
+export const INITIAL_CITY_HEALTH: CityHealthOverview = {
+  overallScore: 78,
+  status: 'ELEVATED URBAN RISK - MONSOON & INFRASTRUCTURE CONVERGENCE',
+  floodRisk: 72,
+  heatRisk: 41,
+  waterRisk: 53,
+  wasteRisk: 32,
+  roadRisk: 61,
+  citizenComplaintsTotal: 54,
+  citizenComplaintsPending: 12,
+  activeCriticalAlerts: 4,
+  preventiveActionsDeployedToday: 18,
+};
+
+export const INITIAL_PREDICTIVE_FLOOD: PredictiveFloodForecast = {
+  probability: 87,
+  peakHours: '6:00 PM – 9:00 PM',
+  expectedRainfallTotalMm: 126.4,
+  soilSaturationPercentage: 92,
+  drainageOverflowRisk: 'CRITICAL',
+  highRiskWards: ['Ward 12 (Central)', 'Ward 4 (North Basin)', 'Ward 7 (Industrial Ring)'],
+  timeline: [
+    { time: '14:00', rainfallMm: 18, runoffLitresSec: 2400, inundationRisk: 35 },
+    { time: '16:00', rainfallMm: 36, runoffLitresSec: 5800, inundationRisk: 62 },
+    { time: '18:00', rainfallMm: 74, runoffLitresSec: 12400, inundationRisk: 87 },
+    { time: '20:00', rainfallMm: 92, runoffLitresSec: 15200, inundationRisk: 94 },
+    { time: '22:00', rainfallMm: 45, runoffLitresSec: 8900, inundationRisk: 70 },
+    { time: '00:00', rainfallMm: 14, runoffLitresSec: 3200, inundationRisk: 40 }
+  ],
+  aiRecommendedActions: [
+    'Inspect primary stormwater drainage in Ward 12 immediately',
+    'Deploy high-capacity dewatering pumps (2x 150HP) near Zone B underpass',
+    'Clear detected debris blockage at Tidal Sluice Gate 14B',
+    'Issue geofenced push alerts to 14,000 residents in low-lying sectors',
+    'Pre-position emergency civil rescue teams at Station 3'
+  ]
+};
+
+export const INITIAL_ROAD_DAMAGES: YoloRoadDamageDetection[] = [
+  {
+    id: 'YOLO-RD-01',
+    imageUrl: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=800&q=80',
+    source: 'INSPECTION_VEHICLE',
+    location: {
+      lat: 19.0765,
+      lng: 72.8780,
+      address: 'Arterial Ring Road, Near Junction 4',
+      ward: 'Ward 12',
+      zone: 'Zone II'
+    },
+    detectedAt: new Date(Date.now() - 45 * 60000).toISOString(),
+    defectType: 'POTHOLE',
+    severity: 'HIGH',
+    priority: 'P1',
+    repairUrgency: '24-48 hours',
+    confidence: 94.2,
+    estimatedAreaSqM: 3.8,
+    estimatedDepthCm: 14,
+    recommendedRepair: 'Deep milling + rapid cold-mix asphalt mastic compaction',
+    boundingBoxes: [
+      { x: 28, y: 35, width: 44, height: 38, label: 'Pothole (Severe)', confidence: 0.94 }
+    ],
+    workOrderGenerated: true
+  },
+  {
+    id: 'YOLO-RD-02',
+    imageUrl: 'https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?auto=format&fit=crop&w=800&q=80',
+    source: 'CCTV_FEED',
+    location: {
+      lat: 19.0885,
+      lng: 72.8955,
+      address: 'Express Flyover Descent, Sector 8',
+      ward: 'Ward 4',
+      zone: 'Zone III'
+    },
+    detectedAt: new Date(Date.now() - 90 * 60000).toISOString(),
+    defectType: 'ALLIGATOR_CRACKING',
+    severity: 'HIGH',
+    priority: 'P1',
+    repairUrgency: '24-48 hours',
+    confidence: 89.6,
+    estimatedAreaSqM: 6.2,
+    estimatedDepthCm: 8,
+    recommendedRepair: 'Polymer modified bitumen crack sealing & overlay',
+    boundingBoxes: [
+      { x: 15, y: 22, width: 68, height: 55, label: 'Alligator Cracking', confidence: 0.90 }
+    ],
+    workOrderGenerated: true
+  },
+  {
+    id: 'YOLO-RD-03',
+    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+    source: 'CITIZEN_UPLOAD',
+    location: {
+      lat: 19.0620,
+      lng: 72.8620,
+      address: 'Market Link Road, Ward 7',
+      ward: 'Ward 7',
+      zone: 'Zone I'
+    },
+    detectedAt: new Date(Date.now() - 15 * 60000).toISOString(),
+    defectType: 'DAMAGED_MANHOLE',
+    severity: 'MEDIUM',
+    priority: 'P2',
+    repairUrgency: '3-5 days',
+    confidence: 91.4,
+    estimatedAreaSqM: 1.5,
+    estimatedDepthCm: 22,
+    recommendedRepair: 'Cast iron frame stabilization + concrete apron recasting',
+    boundingBoxes: [
+      { x: 32, y: 40, width: 36, height: 36, label: 'Dislodged Manhole Frame', confidence: 0.91 }
+    ],
+    workOrderGenerated: false
+  }
+];
+
+export const INITIAL_WASTE_HOTSPOTS: WasteHotspotItem[] = [
+  {
+    id: 'WASTE-HS-12',
+    hotspotName: 'Commercial Market Dump Hotspot #12',
+    location: {
+      lat: 19.0740,
+      lng: 72.8810,
+      address: 'Fruit & Produce Market Plaza, Ward 12',
+      ward: 'Ward 12',
+      zone: 'Zone II'
+    },
+    currentWasteLevel: 'HIGH',
+    collectionDelayHours: 8,
+    predictedOverflowHours: 6,
+    binCapacityPercentage: 94,
+    cameraImageUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80',
+    actionRequired: 'Dispatch automated garbage compactor vehicle within 4 hours to prevent runoff contamination'
+  },
+  {
+    id: 'WASTE-HS-04',
+    hotspotName: 'Transit Terminal Bin Cluster #04',
+    location: {
+      lat: 19.0860,
+      lng: 72.8910,
+      address: 'Metro Station West Exit, Ward 4',
+      ward: 'Ward 4',
+      zone: 'Zone III'
+    },
+    currentWasteLevel: 'CRITICAL_OVERFLOW',
+    collectionDelayHours: 12,
+    predictedOverflowHours: 1,
+    binCapacityPercentage: 118,
+    cameraImageUrl: 'https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?auto=format&fit=crop&w=800&q=80',
+    assignedTruckId: 'CREW-05',
+    actionRequired: 'Secondary compactor en route. Bio-sanitization sweep scheduled.'
+  },
+  {
+    id: 'WASTE-HS-18',
+    hotspotName: 'Residential Collector Point #18',
+    location: {
+      lat: 19.0510,
+      lng: 72.8480,
+      address: 'Hillside Colony Avenue, Ward 18',
+      ward: 'Ward 18',
+      zone: 'Zone I'
+    },
+    currentWasteLevel: 'MODERATE',
+    collectionDelayHours: 3,
+    predictedOverflowHours: 14,
+    binCapacityPercentage: 68,
+    cameraImageUrl: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=800&q=80',
+    actionRequired: 'Regular morning route pickup adequate'
+  }
+];
+
+export const INITIAL_HEATWAVE: HeatwaveForecastItem = {
+  peakTemperatureC: 44.2,
+  heatIndexC: 48.6,
+  riskLevel: 'VERY_HIGH',
+  vulnerableWards: ['Ward 12 (Dense Concrete Urban Core)', 'Ward 4 (Industrial Basin)', 'Ward 18 (Sloped Low-Canopy)'],
+  coolingCentresActive: 14,
+  totalCoolingCapacity: 6500,
+  waterMistingStationsDeployed: 28,
+  advisoryText: 'Extreme heat index peaking 48.6°C between 12:30 PM and 4:30 PM. Heatwave protocol Phase 2 activated with extended public cooling centre hours.'
+};
+
+export const INITIAL_WATER_SECURITY: WaterSecurityForecastItem = {
+  reservoirLevelsPercentage: 48.2,
+  groundwaterDepletionIndex: 74.5,
+  consumptionDeficitMld: 42.0,
+  stressPredictedWards: [
+    { ward: 'Ward 9 (Upper Heights)', daysUntilStress: 4, severity: 'HIGH' },
+    { ward: 'Ward 18 (Eastern Slopes)', daysUntilStress: 5, severity: 'HIGH' },
+    { ward: 'Ward 4 (Industrial Zone)', daysUntilStress: 8, severity: 'MODERATE' }
+  ],
+  emergencyTankersAvailable: 35,
+  emergencyTankersDispatched: 18,
+  leakageAlertCount: 6
+};
+
 export const WARD_RISK_PROFILES: WardRiskProfile[] = [
   {
-    wardId: 'WARD-G-N',
-    wardName: 'Ward G-North (Dadar / Matunga / Mahim)',
+    wardId: 'WARD-12',
+    wardName: 'Ward 12 (Central Civic & Arterial Core)',
     zone: 'Zone II',
     population: 480000,
-    currentRiskScore: 88,
+    currentRiskScore: 78,
+    floodRiskScore: 87,
+    heatRiskScore: 43,
+    waterRiskScore: 61,
+    wasteRiskScore: 72,
+    roadRiskScore: 78,
+    expectedRainfallMm: 126.4,
+    highRiskRoadsCount: 7,
+    vulnerableAreasCount: 3,
+    recommendedAction: 'Inspect drainage + deploy 2x heavy dewatering pumps at Sector 4 underpass',
     activeWaterloggingCount: 3,
     activePowerOutageCount: 1,
     activeDrainageBlockages: 2,
@@ -438,11 +655,20 @@ export const WARD_RISK_PROFILES: WardRiskProfile[] = [
     historicalFloodVulnerability: 'HIGH'
   },
   {
-    wardId: 'WARD-L-E',
-    wardName: 'Ward L-East (Kurla / Saki Naka)',
+    wardId: 'WARD-04',
+    wardName: 'Ward 4 (North Basin / Kurla / Saki Naka)',
     zone: 'Zone III',
     population: 620000,
-    currentRiskScore: 92,
+    currentRiskScore: 84,
+    floodRiskScore: 92,
+    heatRiskScore: 56,
+    waterRiskScore: 68,
+    wasteRiskScore: 81,
+    roadRiskScore: 84,
+    expectedRainfallMm: 142.0,
+    highRiskRoadsCount: 9,
+    vulnerableAreasCount: 5,
+    recommendedAction: 'Pre-position emergency flood rescue boat & dispatch waste compactor to Hotspot #04',
     activeWaterloggingCount: 2,
     activePowerOutageCount: 2,
     activeDrainageBlockages: 4,
@@ -451,39 +677,66 @@ export const WARD_RISK_PROFILES: WardRiskProfile[] = [
     historicalFloodVulnerability: 'HIGH'
   },
   {
-    wardId: 'WARD-H-E',
-    wardName: 'Ward H-East (Bandra East / Khar)',
-    zone: 'Zone I',
+    wardId: 'WARD-07',
+    wardName: 'Ward 7 (Eastern Industrial Ring & Substation)',
+    zone: 'Zone III',
     population: 390000,
-    currentRiskScore: 74,
+    currentRiskScore: 71,
+    floodRiskScore: 65,
+    heatRiskScore: 68,
+    waterRiskScore: 54,
+    wasteRiskScore: 45,
+    roadRiskScore: 72,
+    expectedRainfallMm: 98.0,
+    highRiskRoadsCount: 4,
+    vulnerableAreasCount: 2,
+    recommendedAction: 'Energize auxiliary 33kV transformer line & clear debris at Sluice Gate 14B',
     activeWaterloggingCount: 1,
-    activePowerOutageCount: 0,
+    activePowerOutageCount: 1,
     activeDrainageBlockages: 1,
     drainageCapacityPercentage: 55,
-    transformerHealthScore: 82,
+    transformerHealthScore: 52,
     historicalFloodVulnerability: 'MODERATE'
   },
   {
-    wardId: 'WARD-F-S',
-    wardName: 'Ward F-South (Parel / Sewri)',
+    wardId: 'WARD-18',
+    wardName: 'Ward 18 (Eastern Hillside & Reservoir Valley)',
     zone: 'Zone I',
-    population: 310000,
-    currentRiskScore: 61,
-    activeWaterloggingCount: 1,
+    population: 340000,
+    currentRiskScore: 68,
+    floodRiskScore: 42,
+    heatRiskScore: 74,
+    waterRiskScore: 88,
+    wasteRiskScore: 52,
+    roadRiskScore: 59,
+    expectedRainfallMm: 64.0,
+    highRiskRoadsCount: 3,
+    vulnerableAreasCount: 4,
+    recommendedAction: 'Increase tanker allocation (6 units) + inspect main pipeline pressure sensors for leakage',
+    activeWaterloggingCount: 0,
     activePowerOutageCount: 0,
     activeDrainageBlockages: 0,
-    drainageCapacityPercentage: 68,
-    transformerHealthScore: 89,
+    drainageCapacityPercentage: 75,
+    transformerHealthScore: 86,
     historicalFloodVulnerability: 'LOW'
   },
   {
-    wardId: 'WARD-K-W',
-    wardName: 'Ward K-West (Andheri West / Juhu)',
+    wardId: 'WARD-09',
+    wardName: 'Ward 9 (Upper Heights & High Density)',
     zone: 'Zone IV',
-    population: 550000,
-    currentRiskScore: 65,
+    population: 510000,
+    currentRiskScore: 64,
+    floodRiskScore: 48,
+    heatRiskScore: 62,
+    waterRiskScore: 82,
+    wasteRiskScore: 59,
+    roadRiskScore: 61,
+    expectedRainfallMm: 72.0,
+    highRiskRoadsCount: 4,
+    vulnerableAreasCount: 3,
+    recommendedAction: 'Reroute water booster pumps & open 2 air-conditioned cooling relief centres',
     activeWaterloggingCount: 1,
-    activePowerOutageCount: 1,
+    activePowerOutageCount: 0,
     activeDrainageBlockages: 1,
     drainageCapacityPercentage: 62,
     transformerHealthScore: 78,

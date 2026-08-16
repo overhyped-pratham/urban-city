@@ -120,12 +120,116 @@ export interface WardRiskProfile {
   zone: string;
   population: number;
   currentRiskScore: number; // 0 - 100
+  floodRiskScore: number; // 0 - 100
+  heatRiskScore: number; // 0 - 100
+  waterRiskScore: number; // 0 - 100
+  wasteRiskScore: number; // 0 - 100
+  roadRiskScore: number; // 0 - 100
+  expectedRainfallMm: number;
+  highRiskRoadsCount: number;
+  vulnerableAreasCount: number;
+  recommendedAction: string;
   activeWaterloggingCount: number;
   activePowerOutageCount: number;
   activeDrainageBlockages: number;
   drainageCapacityPercentage: number;
   transformerHealthScore: number; // 0 - 100
   historicalFloodVulnerability: 'HIGH' | 'MODERATE' | 'LOW';
+}
+
+export interface CityHealthOverview {
+  overallScore: number; // e.g. 78/100
+  status: string;
+  floodRisk: number; // e.g. 72%
+  heatRisk: number; // e.g. 41%
+  waterRisk: number; // e.g. 53%
+  wasteRisk: number; // e.g. 32%
+  roadRisk: number; // e.g. 61%
+  citizenComplaintsTotal: number;
+  citizenComplaintsPending: number;
+  activeCriticalAlerts: number;
+  preventiveActionsDeployedToday: number;
+}
+
+export interface PredictiveFloodForecast {
+  probability: number; // e.g. 87%
+  peakHours: string; // e.g. "6 - 9 PM"
+  expectedRainfallTotalMm: number;
+  soilSaturationPercentage: number;
+  drainageOverflowRisk: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
+  highRiskWards: string[];
+  timeline: { time: string; rainfallMm: number; runoffLitresSec: number; inundationRisk: number }[];
+  aiRecommendedActions: string[];
+}
+
+export interface YoloRoadDamageDetection {
+  id: string;
+  imageUrl: string;
+  source: 'CCTV_FEED' | 'CITIZEN_UPLOAD' | 'INSPECTION_VEHICLE';
+  location: GeoLocation;
+  detectedAt: string;
+  defectType: 'POTHOLE' | 'ALLIGATOR_CRACKING' | 'LONGITUDINAL_CRACK' | 'ROAD_SUBSIDENCE' | 'DAMAGED_MANHOLE';
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority: 'P1' | 'P2' | 'P3';
+  repairUrgency: '24-48 hours' | '3-5 days' | 'Scheduled Maintenance';
+  confidence: number;
+  estimatedAreaSqM: number;
+  estimatedDepthCm: number;
+  recommendedRepair: string;
+  boundingBoxes: { x: number; y: number; width: number; height: number; label: string; confidence: number }[];
+  workOrderGenerated: boolean;
+}
+
+export interface WasteHotspotItem {
+  id: string;
+  hotspotName: string;
+  location: GeoLocation;
+  currentWasteLevel: 'HIGH' | 'MODERATE' | 'CRITICAL_OVERFLOW' | 'NORMAL';
+  collectionDelayHours: number;
+  predictedOverflowHours: number;
+  binCapacityPercentage: number;
+  cameraImageUrl: string;
+  assignedTruckId?: string;
+  actionRequired: string;
+}
+
+export interface HeatwaveForecastItem {
+  peakTemperatureC: number;
+  heatIndexC: number;
+  riskLevel: 'VERY_HIGH' | 'HIGH' | 'MODERATE' | 'LOW';
+  vulnerableWards: string[];
+  coolingCentresActive: number;
+  totalCoolingCapacity: number;
+  waterMistingStationsDeployed: number;
+  advisoryText: string;
+}
+
+export interface WaterSecurityForecastItem {
+  reservoirLevelsPercentage: number;
+  groundwaterDepletionIndex: number;
+  consumptionDeficitMld: number;
+  stressPredictedWards: { ward: string; daysUntilStress: number; severity: 'HIGH' | 'MODERATE' }[];
+  emergencyTankersAvailable: number;
+  emergencyTankersDispatched: number;
+  leakageAlertCount: number;
+}
+
+export interface AiCopilotMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  structuredDetails?: {
+    highRiskLocations?: { ward: string; risk: number; reason: string }[];
+    rootCauses?: string[];
+    recommendedActions?: {
+      title: string;
+      department: string;
+      urgency: 'IMMEDIATE' | 'HIGH' | 'ROUTINE';
+      actionType: 'DISPATCH_PUMPS' | 'INSPECT_DRAINAGE' | 'COOLING_ALERT' | 'DISPATCH_WASTE_TRUCK' | 'ROAD_PATCHING' | 'TANKER_ALLOCATION';
+      params?: Record<string, any>;
+    }[];
+  };
 }
 
 export interface NotificationItem {
