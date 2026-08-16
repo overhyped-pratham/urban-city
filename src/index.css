@@ -1,7 +1,22 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --bg-main: #05060a;
+    --bg-card: #0d1117;
+    --bg-subcard: #161b22;
+    --border-subtle: #21262d;
+    --border-strong: #30363d;
+    --text-primary: #f0f6fc;
+    --text-secondary: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent-cyan: #06b6d4;
+    --accent-glow: rgba(6, 182, 212, 0.25);
+  }
+
   body {
+    background-color: #05060a;
+    color: #c9d1d9;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   }
 
@@ -16,39 +31,39 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: #05060a;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.5);
+  background: #21262d;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.8);
+  background: #30363d;
 }
 
 /* Leaflet dark theme tweaks */
 .leaflet-container {
-  background-color: #030712 !important;
+  background-color: #05060a !important;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
 }
 .leaflet-popup-content-wrapper {
-  background: #0f172a !important;
-  color: #f8fafc !important;
-  border: 1px solid #334155 !important;
+  background: #0d1117 !important;
+  color: #f0f6fc !important;
+  border: 1px solid #30363d !important;
   border-radius: 12px !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 0 15px rgba(6, 182, 212, 0.15) !important;
 }
 .leaflet-popup-tip {
-  background: #0f172a !important;
+  background: #0d1117 !important;
 }
 .leaflet-control-zoom a {
-  background-color: #0f172a !important;
-  color: #94a3b8 !important;
-  border-color: #334155 !important;
+  background-color: #0d1117 !important;
+  color: #8b949e !important;
+  border-color: #30363d !important;
 }
 .leaflet-control-zoom a:hover {
-  background-color: #1e293b !important;
-  color: #f8fafc !important;
+  background-color: #161b22 !important;
+  color: #06b6d4 !important;
 }
 
 /* Radar scan animation */
@@ -73,10 +88,11 @@
   }
   50% {
     opacity: 1;
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
 }
 
 .pulse-glow {
   animation: pulseGlow 2.5s ease-in-out infinite;
 }
+

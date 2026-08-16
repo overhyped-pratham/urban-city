@@ -432,7 +432,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
   }, [selectedIncident]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-68px)] bg-slate-950 flex overflow-hidden">
+    <div className="relative w-full h-[calc(100vh-68px)] bg-[#05060a] flex overflow-hidden">
       
       {/* Map Element */}
       <div id="leaflet-satellite-canvas" ref={mapContainerRef} className="w-full h-full z-0" />
@@ -441,9 +441,9 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 max-w-xs">
         
         {/* Base Map Selector */}
-        <div className="bg-slate-900/90 backdrop-blur-md p-2.5 rounded-xl border border-slate-800 shadow-xl">
+        <div className="bg-[#0d1117]/95 backdrop-blur-md p-2.5 rounded-xl border border-[#21262d] shadow-xl">
           <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-cyan-400" />
               GIS Satellite Base
             </span>
@@ -452,7 +452,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
             <button
               onClick={() => setBaseMap('satellite')}
               className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
-                baseMap === 'satellite' ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+                baseMap === 'satellite' ? 'bg-cyan-500 text-[#05060a] font-bold shadow-sm shadow-cyan-500/20' : 'bg-[#161b22] text-[#c9d1d9] hover:bg-[#21262d]'
               }`}
             >
               Satellite
@@ -460,7 +460,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
             <button
               onClick={() => setBaseMap('dark')}
               className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
-                baseMap === 'dark' ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+                baseMap === 'dark' ? 'bg-cyan-500 text-[#05060a] font-bold shadow-sm shadow-cyan-500/20' : 'bg-[#161b22] text-[#c9d1d9] hover:bg-[#21262d]'
               }`}
             >
               Dark GIS
@@ -468,7 +468,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
             <button
               onClick={() => setBaseMap('streets')}
               className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
-                baseMap === 'streets' ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+                baseMap === 'streets' ? 'bg-cyan-500 text-[#05060a] font-bold shadow-sm shadow-cyan-500/20' : 'bg-[#161b22] text-[#c9d1d9] hover:bg-[#21262d]'
               }`}
             >
               Streets
@@ -477,9 +477,9 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
         </div>
 
         {/* Spectral Index Simulator HUD */}
-        <div className="bg-slate-900/90 backdrop-blur-md p-2.5 rounded-xl border border-slate-800 shadow-xl">
+        <div className="bg-[#0d1117]/95 backdrop-blur-md p-2.5 rounded-xl border border-[#21262d] shadow-xl">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider flex items-center gap-1.5">
               <Eye className="w-3.5 h-3.5 text-cyan-400" />
               Spectral Sensor Filter
             </span>
@@ -488,7 +488,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
             <button
               onClick={() => setSpectralMode('normal')}
               className={`px-2 py-1.5 rounded text-[11px] font-medium transition-all text-left ${
-                spectralMode === 'normal' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-slate-800/60 text-slate-400'
+                spectralMode === 'normal' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-[#161b22] text-[#8b949e] hover:text-[#c9d1d9]'
               }`}
             >
               Optical (True Color)
@@ -496,7 +496,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
             <button
               onClick={() => setSpectralMode('ndwi')}
               className={`px-2 py-1.5 rounded text-[11px] font-medium transition-all text-left ${
-                spectralMode === 'ndwi' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50' : 'bg-slate-800/60 text-slate-400'
+                spectralMode === 'ndwi' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50' : 'bg-[#161b22] text-[#8b949e] hover:text-[#c9d1d9]'
               }`}
             >
               NDWI (Water Index)
@@ -504,7 +504,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
             <button
               onClick={() => setSpectralMode('thermal')}
               className={`px-2 py-1.5 rounded text-[11px] font-medium transition-all text-left ${
-                spectralMode === 'thermal' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50' : 'bg-slate-800/60 text-slate-400'
+                spectralMode === 'thermal' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50' : 'bg-[#161b22] text-[#8b949e] hover:text-[#c9d1d9]'
               }`}
             >
               Thermal IR (Grid Fault)
@@ -512,7 +512,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
             <button
               onClick={() => setSpectralMode('sar')}
               className={`px-2 py-1.5 rounded text-[11px] font-medium transition-all text-left ${
-                spectralMode === 'sar' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50' : 'bg-slate-800/60 text-slate-400'
+                spectralMode === 'sar' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50' : 'bg-[#161b22] text-[#8b949e] hover:text-[#c9d1d9]'
               }`}
             >
               SAR Radar Reflectivity
@@ -521,13 +521,13 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
         </div>
 
         {/* GIS Vector Layer Toggles */}
-        <div className="bg-slate-900/90 backdrop-blur-md p-2.5 rounded-xl border border-slate-800 shadow-xl">
-          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <div className="bg-[#0d1117]/95 backdrop-blur-md p-2.5 rounded-xl border border-[#21262d] shadow-xl">
+          <div className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <Compass className="w-3.5 h-3.5 text-cyan-400" />
             Active Municipal Layers
           </div>
           <div className="space-y-1.5 text-xs">
-            <label className="flex items-center justify-between text-slate-300 hover:text-white cursor-pointer select-none">
+            <label className="flex items-center justify-between text-[#c9d1d9] hover:text-white cursor-pointer select-none">
               <span className="flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
                 33kV/11kV Power Grid
@@ -536,11 +536,11 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                 type="checkbox"
                 checked={showPowerGrid}
                 onChange={e => setShowPowerGrid(e.target.checked)}
-                className="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer"
+                className="rounded bg-[#161b22] border-[#30363d] text-cyan-500 focus:ring-0 cursor-pointer"
               />
             </label>
 
-            <label className="flex items-center justify-between text-slate-300 hover:text-white cursor-pointer select-none">
+            <label className="flex items-center justify-between text-[#c9d1d9] hover:text-white cursor-pointer select-none">
               <span className="flex items-center gap-1.5">
                 <Droplets className="w-3.5 h-3.5 text-blue-400" />
                 Storm Drainage Culverts
@@ -549,11 +549,11 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                 type="checkbox"
                 checked={showDrainage}
                 onChange={e => setShowDrainage(e.target.checked)}
-                className="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer"
+                className="rounded bg-[#161b22] border-[#30363d] text-cyan-500 focus:ring-0 cursor-pointer"
               />
             </label>
 
-            <label className="flex items-center justify-between text-slate-300 hover:text-white cursor-pointer select-none">
+            <label className="flex items-center justify-between text-[#c9d1d9] hover:text-white cursor-pointer select-none">
               <span className="flex items-center gap-1.5">
                 <Truck className="w-3.5 h-3.5 text-purple-400" />
                 Maintenance Crews (GPS)
@@ -562,11 +562,11 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                 type="checkbox"
                 checked={showCrews}
                 onChange={e => setShowCrews(e.target.checked)}
-                className="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer"
+                className="rounded bg-[#161b22] border-[#30363d] text-cyan-500 focus:ring-0 cursor-pointer"
               />
             </label>
 
-            <label className="flex items-center justify-between text-slate-300 hover:text-white cursor-pointer select-none">
+            <label className="flex items-center justify-between text-[#c9d1d9] hover:text-white cursor-pointer select-none">
               <span className="flex items-center gap-1.5">
                 <Camera className="w-3.5 h-3.5 text-emerald-400" />
                 Citizen Ground Truth
@@ -575,7 +575,7 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                 type="checkbox"
                 checked={showCitizens}
                 onChange={e => setShowCitizens(e.target.checked)}
-                className="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer"
+                className="rounded bg-[#161b22] border-[#30363d] text-cyan-500 focus:ring-0 cursor-pointer"
               />
             </label>
           </div>
@@ -587,15 +587,15 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
       <div className="absolute top-4 right-4 z-10 w-80 max-h-[calc(100vh-100px)] flex flex-col gap-2 pointer-events-auto">
         
         {/* Header Pill */}
-        <div className="bg-slate-900/90 backdrop-blur-md p-3 rounded-xl border border-slate-800 shadow-xl">
+        <div className="bg-[#0d1117]/95 backdrop-blur-md p-3 rounded-xl border border-[#21262d] shadow-xl">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#f0f6fc] flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 text-rose-400" />
               Live Incidents ({incidents.length})
             </span>
             <button
               onClick={onOpenSatelliteAnalyzer}
-              className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/60"
+              className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/60 transition-colors"
             >
               <Sparkles className="w-3 h-3" />
               New Scan
@@ -610,8 +610,8 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                 onClick={() => setFilterCategory(cat)}
                 className={`px-2 py-0.5 text-[10px] font-bold rounded-md whitespace-nowrap transition-colors ${
                   filterCategory === cat
-                    ? 'bg-cyan-500 text-slate-950'
-                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                    ? 'bg-cyan-500 text-[#05060a]'
+                    : 'bg-[#161b22] text-[#8b949e] hover:text-[#c9d1d9]'
                 }`}
               >
                 {cat === 'ALL' ? 'All' : cat === 'WATER_LOGGING' ? 'Water' : cat === 'POWER_FAILURE' ? 'Grid' : 'Drain'}
@@ -633,12 +633,12 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                   key={inc.id}
                   id={`map-card-${inc.id}`}
                   onClick={() => onSelectIncident(inc)}
-                  className={`p-3 rounded-xl border transition-all cursor-pointer bg-slate-900/90 backdrop-blur-md shadow-lg ${
+                  className={`p-3 rounded-xl border transition-all cursor-pointer bg-[#0d1117]/95 backdrop-blur-md shadow-lg ${
                     isSelected
-                      ? 'border-cyan-400 ring-1 ring-cyan-400/50 bg-slate-800/95'
+                      ? 'border-cyan-400 ring-1 ring-cyan-400/50 bg-[#161b22]'
                       : isCritical
-                      ? 'border-rose-800/60 hover:border-rose-600'
-                      : 'border-slate-800 hover:border-slate-700'
+                      ? 'border-rose-900/60 hover:border-rose-500'
+                      : 'border-[#21262d] hover:border-[#30363d]'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -647,22 +647,22 @@ export const SatelliteMap: React.FC<SatelliteMapProps> = ({
                     }`}>
                       {inc.severity}
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
+                    <span className="text-[10px] font-mono text-[#8b949e] flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {new Date(inc.detectedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
 
-                  <h4 className="text-xs font-bold text-white mb-1 line-clamp-1">
+                  <h4 className="text-xs font-bold text-[#f0f6fc] mb-1 line-clamp-1">
                     {inc.title}
                   </h4>
 
-                  <p className="text-[11px] text-slate-400 mb-2 line-clamp-1">
+                  <p className="text-[11px] text-[#8b949e] mb-2 line-clamp-1">
                     📍 {inc.location.address}
                   </p>
 
-                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-300 pt-2 border-t border-slate-800">
-                    <span className="text-cyan-400">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-[#c9d1d9] pt-2 border-t border-[#21262d]">
+                    <span className="text-cyan-400 font-semibold">
                       {inc.assignedCrewName ? `Unit: ${inc.assignedCrewName}` : 'Crew Unassigned'}
                     </span>
                     <button

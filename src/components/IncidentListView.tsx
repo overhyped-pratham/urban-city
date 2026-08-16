@@ -58,16 +58,16 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
       {/* Top Stat Ribbon */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-md">
+        <div className="p-4 rounded-2xl bg-[#0d1117]/90 border border-[#21262d] backdrop-blur-md shadow-lg">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Active Incidents</span>
+            <span className="text-xs font-bold text-[#8b949e] uppercase tracking-wider">Total Active Incidents</span>
             <ShieldAlert className="w-4 h-4 text-cyan-400" />
           </div>
-          <div className="text-2xl font-black font-mono text-white">{incidents.length}</div>
-          <span className="text-[11px] text-slate-500 font-mono">Monitored by Sentinel-2 & SAR</span>
+          <div className="text-2xl font-black font-mono text-[#f0f6fc]">{incidents.length}</div>
+          <span className="text-[11px] text-[#8b949e] font-mono">Monitored by Sentinel-2 & SAR</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-900/40 backdrop-blur-md">
+        <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-900/40 backdrop-blur-md shadow-lg">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">Critical Escalations</span>
             <AlertTriangle className="w-4 h-4 text-rose-400 animate-pulse" />
@@ -76,7 +76,7 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
           <span className="text-[11px] text-rose-400/70 font-mono">Immediate crew intervention required</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-purple-950/20 border border-purple-900/40 backdrop-blur-md">
+        <div className="p-4 rounded-2xl bg-purple-950/20 border border-purple-900/40 backdrop-blur-md shadow-lg">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">Active Crews Dispatched</span>
             <Truck className="w-4 h-4 text-purple-400" />
@@ -85,7 +85,7 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
           <span className="text-[11px] text-purple-400/70 font-mono">En route / on-site remediation</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-900/40 backdrop-blur-md">
+        <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-900/40 backdrop-blur-md shadow-lg">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Resolved Today</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -97,39 +97,39 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+      <div className="p-4 rounded-2xl bg-[#0d1117] border border-[#21262d] space-y-3 shadow-lg">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           
           {/* Search Box */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8b949e]" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search by ID, Ward, Address, Hazard Keyword..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+              className="w-full pl-9 pr-4 py-2 bg-[#05060a] border border-[#21262d] rounded-xl text-xs text-[#c9d1d9] placeholder-[#8b949e] focus:outline-none focus:border-cyan-500"
             />
           </div>
 
           {/* Quick AI Scan trigger */}
           <button
             onClick={onOpenSatelliteAnalyzer}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-[#05060a] font-bold text-xs shadow-md shadow-cyan-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
           >
-            <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+            <Sparkles className="w-3.5 h-3.5 text-[#05060a]" />
             <span>New Satellite Scan</span>
           </button>
 
         </div>
 
         {/* Dropdowns */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#21262d]">
           
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+            className="bg-[#05060a] border border-[#21262d] rounded-lg px-2.5 py-1.5 text-xs text-[#c9d1d9] focus:outline-none focus:border-cyan-500"
           >
             <option value="ALL">All Categories</option>
             <option value="WATER_LOGGING">Water Logging / Flood</option>
@@ -141,7 +141,7 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
           <select
             value={severityFilter}
             onChange={e => setSeverityFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+            className="bg-[#05060a] border border-[#21262d] rounded-lg px-2.5 py-1.5 text-xs text-[#c9d1d9] focus:outline-none focus:border-cyan-500"
           >
             <option value="ALL">All Severities</option>
             <option value="CRITICAL">Critical</option>
@@ -153,7 +153,7 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+            className="bg-[#05060a] border border-[#21262d] rounded-lg px-2.5 py-1.5 text-xs text-[#c9d1d9] focus:outline-none focus:border-cyan-500"
           >
             <option value="ALL">All Statuses</option>
             <option value="DETECTED">Detected</option>
@@ -163,8 +163,8 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
             <option value="RESOLVED">Resolved</option>
           </select>
 
-          <div className="ml-auto text-xs font-mono text-slate-400">
-            Showing <strong>{filteredIncidents.length}</strong> of {incidents.length} incidents
+          <div className="ml-auto text-xs font-mono text-[#8b949e]">
+            Showing <strong className="text-[#f0f6fc]">{filteredIncidents.length}</strong> of {incidents.length} incidents
           </div>
 
         </div>
@@ -179,22 +179,22 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
             <div
               key={inc.id}
               onClick={() => onSelectIncident(inc)}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer bg-slate-900/90 backdrop-blur-md flex flex-col justify-between hover:scale-[1.01] ${
-                isCritical ? 'border-rose-900/50 hover:border-rose-500 shadow-lg shadow-rose-950/20' : 'border-slate-800 hover:border-cyan-500/50'
+              className={`p-4 rounded-2xl border transition-all cursor-pointer bg-[#0d1117]/95 backdrop-blur-md flex flex-col justify-between hover:scale-[1.01] ${
+                isCritical ? 'border-rose-900/60 hover:border-rose-500 shadow-lg shadow-rose-950/20' : 'border-[#21262d] hover:border-cyan-500/50'
               }`}
             >
               <div>
                 {/* Image header with sensor tag */}
-                <div className="relative rounded-xl overflow-hidden h-36 mb-3 bg-slate-950">
+                <div className="relative rounded-xl overflow-hidden h-36 mb-3 bg-[#05060a]">
                   <img
                     src={inc.satelliteImage}
                     alt={inc.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 backdrop-blur-md border border-slate-700 text-[10px] font-mono text-cyan-300">
+                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#05060a]/80 backdrop-blur-md border border-[#30363d] text-[10px] font-mono text-cyan-300">
                     {inc.satelliteSensor}
                   </div>
-                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold font-mono uppercase bg-slate-950/90 border border-slate-700 text-white">
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold font-mono uppercase bg-[#05060a]/90 border border-[#30363d] text-white">
                     {inc.id}
                   </div>
                 </div>
@@ -206,29 +206,29 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
                   }`}>
                     {inc.severity} SEVERITY
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
+                  <span className="text-[10px] font-mono text-[#8b949e] flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {new Date(inc.detectedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
 
-                <h3 className="text-sm font-bold text-white mb-1 line-clamp-1">{inc.title}</h3>
+                <h3 className="text-sm font-bold text-[#f0f6fc] mb-1 line-clamp-1">{inc.title}</h3>
                 
-                <p className="text-xs text-slate-400 mb-3 flex items-start gap-1 line-clamp-1">
+                <p className="text-xs text-[#8b949e] mb-3 flex items-start gap-1 line-clamp-1">
                   <MapPin className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0 mt-0.5" />
                   <span>{inc.location.address}</span>
                 </p>
 
                 {/* AI Detection Summary snippet */}
-                <p className="text-xs text-slate-300 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 mb-3 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#c9d1d9] bg-[#05060a] p-2.5 rounded-xl border border-[#21262d] mb-3 line-clamp-2 leading-relaxed">
                   {inc.aiAnalysis.aiSummary}
                 </p>
               </div>
 
               {/* Footer row with crew status & button */}
-              <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <div className="pt-3 border-t border-[#21262d] flex items-center justify-between">
                 <div className="text-xs font-mono">
-                  <span className="text-slate-400 block text-[10px]">Status / Assigned:</span>
+                  <span className="text-[#8b949e] block text-[10px]">Status / Assigned:</span>
                   <span className="text-cyan-400 font-bold">
                     {inc.assignedCrewName || 'Crew Unassigned'}
                   </span>
@@ -239,7 +239,7 @@ export const IncidentListView: React.FC<IncidentListViewProps> = ({
                     e.stopPropagation();
                     onSelectIncident(inc);
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-cyan-500 hover:text-slate-950 text-slate-200 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-[#161b22] hover:bg-cyan-500 hover:text-[#05060a] text-[#c9d1d9] text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border border-[#30363d]"
                 >
                   <span>Dossier</span>
                   <ExternalLink className="w-3 h-3" />

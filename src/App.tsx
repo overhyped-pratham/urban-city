@@ -276,7 +276,7 @@ export default function App() {
   const criticalIncidentsCount = incidents.filter(i => i.severity === 'CRITICAL' && i.status !== 'RESOLVED').length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-slate-950 font-sans">
+    <div className="min-h-screen bg-[#05060a] text-[#c9d1d9] flex flex-col selection:bg-cyan-500 selection:text-[#05060a] font-sans">
       
       {/* Top Navigation Bar */}
       <Navbar

@@ -48,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   criticalIncidentsCount
 }) => {
   return (
-    <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-2.5">
+    <header className="bg-[#0d1117]/95 backdrop-blur-md border-b border-[#21262d] sticky top-0 z-40 px-4 py-2.5 shadow-lg shadow-black/40">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         
         {/* Brand & Live Satellite Status */}
@@ -61,11 +61,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+                <span className="text-base font-bold tracking-tight text-[#f0f6fc] flex items-center gap-1.5">
                   UrbanWatch <span className="text-cyan-400 font-mono text-xs px-1.5 py-0.5 bg-cyan-950/80 border border-cyan-800/60 rounded">SENTINEL</span>
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-mono flex items-center gap-1">
+              <p className="text-[11px] text-[#8b949e] font-mono flex items-center gap-1">
                 <Radio className="w-3 h-3 text-emerald-400 animate-pulse inline" />
                 MUNICIPAL SATELLITE & DISPATCH COMMAND
               </p>
@@ -76,7 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={onOpenNotifications}
-              className="relative p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white"
+              className="relative p-2 rounded-lg bg-[#161b22] border border-[#30363d] text-[#c9d1d9] hover:text-white"
             >
               <Bell className="w-4 h-4" />
               {unreadNotifsCount > 0 && (
@@ -89,14 +89,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* View Switcher Navigation Tabs */}
-        <nav className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 overflow-x-auto max-w-full">
+        <nav className="flex items-center gap-1 bg-[#05060a]/90 p-1 rounded-xl border border-[#21262d] overflow-x-auto max-w-full">
           <button
             id="nav-tab-map"
             onClick={() => setActiveTab('map')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'map'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-cyan-500 text-[#05060a] shadow-md shadow-cyan-500/20 font-bold'
+                : 'text-[#8b949e] hover:text-[#f0f6fc] hover:bg-[#161b22]'
             }`}
           >
             <Map className="w-3.5 h-3.5" />
@@ -108,14 +108,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('incidents')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'incidents'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-cyan-500 text-[#05060a] shadow-md shadow-cyan-500/20 font-bold'
+                : 'text-[#8b949e] hover:text-[#f0f6fc] hover:bg-[#161b22]'
             }`}
           >
             <ShieldAlert className="w-3.5 h-3.5" />
             Incident Reports
             {criticalIncidentsCount > 0 && (
-              <span className={`px-1.5 py-0.2 text-[10px] rounded-full font-bold ${activeTab === 'incidents' ? 'bg-slate-900 text-rose-400' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}`}>
+              <span className={`px-1.5 py-0.2 text-[10px] rounded-full font-bold ${activeTab === 'incidents' ? 'bg-[#0d1117] text-rose-400' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}`}>
                 {criticalIncidentsCount}
               </span>
             )}
@@ -126,8 +126,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('crews')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'crews'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-cyan-500 text-[#05060a] shadow-md shadow-cyan-500/20 font-bold'
+                : 'text-[#8b949e] hover:text-[#f0f6fc] hover:bg-[#161b22]'
             }`}
           >
             <Truck className="w-3.5 h-3.5" />
@@ -139,8 +139,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('community')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'community'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-cyan-500 text-[#05060a] shadow-md shadow-cyan-500/20 font-bold'
+                : 'text-[#8b949e] hover:text-[#f0f6fc] hover:bg-[#161b22]'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
@@ -152,8 +152,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setActiveTab('analytics')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'analytics'
-                ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-cyan-500 text-[#05060a] shadow-md shadow-cyan-500/20 font-bold'
+                : 'text-[#8b949e] hover:text-[#f0f6fc] hover:bg-[#161b22]'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
@@ -166,9 +166,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           {/* Weather radar tag */}
           {weather && (
-            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-950/70 border border-slate-800 text-xs font-mono">
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#05060a]/90 border border-[#21262d] text-xs font-mono">
               <CloudRain className="w-3.5 h-3.5 text-cyan-400 animate-bounce" />
-              <span className="text-slate-300 font-medium">{weather.precipitationMmPerHour} mm/h</span>
+              <span className="text-[#c9d1d9] font-medium">{weather.precipitationMmPerHour} mm/h</span>
               <span className="text-[10px] text-amber-400 uppercase font-semibold bg-amber-950/50 px-1 py-0.2 rounded border border-amber-800/50">
                 Monsoon Alert
               </span>
@@ -189,7 +189,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             id="btn-emergency-broadcast"
             onClick={onOpenEmergencyBroadcast}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900/90 text-rose-300 border border-rose-700/60 text-xs font-semibold transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900/90 text-rose-300 border border-rose-700/60 text-xs font-semibold transition-all cursor-pointer shadow-md shadow-rose-950/30"
             title="Send Emergency Municipal Citizen Warning"
           >
             <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
@@ -199,17 +199,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Sound toggle */}
           <button
             onClick={() => setSoundEnabled(prev => !prev)}
-            className="p-2 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white transition-colors"
+            className="p-2 rounded-lg bg-[#161b22] border border-[#30363d] text-[#c9d1d9] hover:text-white transition-colors"
             title={soundEnabled ? 'Mute Alert Chimes' : 'Enable Alert Chimes'}
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-cyan-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-cyan-400" /> : <VolumeX className="w-4 h-4 text-[#8b949e]" />}
           </button>
 
           {/* Refresh button */}
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="p-2 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg bg-[#161b22] border border-[#30363d] text-[#c9d1d9] hover:text-white transition-colors disabled:opacity-50"
             title="Refresh Live Telemetry"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-cyan-400' : ''}`} />
@@ -219,10 +219,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             id="btn-notifications-drawer"
             onClick={onOpenNotifications}
-            className="relative p-2 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white transition-colors"
+            className="relative p-2 rounded-lg bg-[#161b22] border border-[#30363d] text-[#c9d1d9] hover:text-white transition-colors"
             title="View Real-Time Push Notifications"
           >
-            <Bell className="w-4 h-4 text-slate-300" />
+            <Bell className="w-4 h-4 text-[#c9d1d9]" />
             {unreadNotifsCount > 0 && (
               <span className="absolute -top-1 -right-1 px-1.5 py-0.2 text-[10px] font-bold bg-rose-500 text-white rounded-full shadow-lg shadow-rose-500/50">
                 {unreadNotifsCount}
