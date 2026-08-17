@@ -521,6 +521,21 @@ export default function App() {
     }
   };
 
+  // Handler: Trigger Push Alert
+  const handleTriggerPushAlert = (title: string, message: string) => {
+    const newNotif: NotificationItem = {
+      id: `NOTIF-SURGE-${Date.now()}`,
+      timestamp: 'Just now',
+      title,
+      message,
+      type: 'WEATHER_WARNING',
+      read: false
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+    if (soundEnabled) playNotificationChime('critical');
+    setIsNotificationsDrawerOpen(true);
+  };
+
   // Handler: Send Emergency Broadcast
   const handleSendBroadcast = async (title: string, message: string, targetWard: string) => {
     try {
@@ -623,6 +638,7 @@ export default function App() {
               cityHealth={cityHealth}
               wardProfiles={wardProfiles}
               floodForecast={predictiveFlood}
+              weather={weather}
               onNavigateTab={setActiveTab}
               onSelectWard={(ward) => {
                 setActiveTab('map');
@@ -634,6 +650,8 @@ export default function App() {
               onOpenAuthorityModal={() => setIsAuthorityModalOpen(true)}
               onOpenApprovalQueue={() => setIsApprovalQueueModalOpen(true)}
               pendingApprovalsCount={pendingApprovalsCount}
+              onTriggerPushAlert={handleTriggerPushAlert}
+              onOpenEmergencyBroadcast={() => setIsBroadcastModalOpen(true)}
             />
           </div>
         )}
@@ -660,12 +678,15 @@ export default function App() {
               wasteHotspots={wasteHotspots}
               heatwave={heatwave}
               waterSecurity={waterSecurity}
+              weather={weather}
               showHistoricalHeatmap={showHistoricalHeatmap}
               onToggleHistoricalHeatmap={setShowHistoricalHeatmap}
               historicalHeatmapCategory={historicalHeatmapCategory}
               onSelectHistoricalHeatmapCategory={setHistoricalHeatmapCategory}
               onDispatchCrew={() => setActiveTab('crews')}
               onViewOnMap={() => setActiveTab('map')}
+              onTriggerPushAlert={handleTriggerPushAlert}
+              onOpenEmergencyBroadcast={() => setIsBroadcastModalOpen(true)}
             />
           </div>
         )}

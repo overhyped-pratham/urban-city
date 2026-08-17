@@ -35,11 +35,13 @@ import {
   WaterSecurityForecastItem,
   SegFormerSARWaterlogging,
   HistoricalRiskHotspot,
-  CityHealthOverview
+  CityHealthOverview,
+  WeatherData
 } from '../types';
-import { INITIAL_SAR_WATERLOGGING, HISTORICAL_RISK_HOTSPOTS, INITIAL_INCIDENTS, INITIAL_CITY_HEALTH } from '../data/mockData';
+import { INITIAL_SAR_WATERLOGGING, HISTORICAL_RISK_HOTSPOTS, INITIAL_INCIDENTS, INITIAL_CITY_HEALTH, INITIAL_WEATHER } from '../data/mockData';
 import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
 import { MaintenanceTrendAnalysis } from './MaintenanceTrendAnalysis';
+import { WindRainSurgeAlertBanner } from './WindRainSurgeAlertBanner';
 
 interface PredictiveHubProps {
   cityHealth?: CityHealthOverview;
@@ -48,6 +50,7 @@ interface PredictiveHubProps {
   wasteHotspots: WasteHotspotItem[];
   heatwave: HeatwaveForecastItem;
   waterSecurity: WaterSecurityForecastItem;
+  weather?: WeatherData | null;
   sarData?: SegFormerSARWaterlogging;
   showHistoricalHeatmap?: boolean;
   onToggleHistoricalHeatmap?: (active: boolean) => void;
@@ -55,6 +58,8 @@ interface PredictiveHubProps {
   onSelectHistoricalHeatmapCategory?: (cat: string) => void;
   onDispatchCrew?: (crewType: string, ward: string) => void;
   onViewOnMap?: () => void;
+  onTriggerPushAlert?: (title: string, message: string) => void;
+  onOpenEmergencyBroadcast?: () => void;
 }
 
 export const PredictiveHub: React.FC<PredictiveHubProps> = ({
@@ -64,13 +69,16 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
   wasteHotspots,
   heatwave,
   waterSecurity,
+  weather = INITIAL_WEATHER,
   sarData = INITIAL_SAR_WATERLOGGING,
   showHistoricalHeatmap = false,
   onToggleHistoricalHeatmap,
   historicalHeatmapCategory = 'ALL',
   onSelectHistoricalHeatmapCategory,
   onDispatchCrew,
-  onViewOnMap
+  onViewOnMap,
+  onTriggerPushAlert,
+  onOpenEmergencyBroadcast
 }) => {
   const [activeEngine, setActiveEngine] = useState<'FLOOD' | 'ROAD' | 'WASTE' | 'HEAT' | 'WATER' | 'MAINTENANCE'>('FLOOD');
   
@@ -122,6 +130,14 @@ export const PredictiveHub: React.FC<PredictiveHubProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Severe Weather & High Surge Banner */}
+      <WindRainSurgeAlertBanner
+        weather={weather}
+        onTriggerPushAlert={onTriggerPushAlert}
+        onOpenEmergencyBroadcast={onOpenEmergencyBroadcast}
+        onViewMap={onViewOnMap}
+      />
+
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div>

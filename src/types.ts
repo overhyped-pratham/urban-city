@@ -316,9 +316,16 @@ export interface WeatherData {
   temperature: number;
   precipitationMmPerHour: number;
   windSpeedKmh: number;
+  windGustsKmh?: number;
   humidity: number;
   radarStatus: 'HEAVY_PRECIPITATION' | 'SCATTERED_SHOWERS' | 'MONSOON_FRONT' | 'CLEAR';
   forecastNext6HoursMm: number[];
+  stormSurgeMeters?: number;
+  highSurgeAlert?: boolean;
+  surgeWarningText?: string;
+  windWarningText?: string;
+  tidalHeightChartDatumMeters?: number;
+  coastalSluiceGateStatus?: 'CLOSED_FOR_SURGE' | 'OPEN_DRAINAGE' | 'PARTIAL_RESTRICTION';
 }
 
 export type AuthorityLevel = 'MONITOR' | 'SUPER_MONITOR' | 'HEAD_ADMIN';

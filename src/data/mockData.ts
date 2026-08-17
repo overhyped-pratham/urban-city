@@ -21,11 +21,18 @@ import {
 export const INITIAL_WEATHER: WeatherData = {
   city: 'Metropolitan Urban District',
   temperature: 28.4,
-  precipitationMmPerHour: 42.5,
-  windSpeedKmh: 28,
-  humidity: 89,
+  precipitationMmPerHour: 62.5,
+  windSpeedKmh: 58,
+  windGustsKmh: 88,
+  humidity: 92,
   radarStatus: 'HEAVY_PRECIPITATION',
-  forecastNext6HoursMm: [42.5, 38.0, 29.5, 18.0, 12.0, 4.5],
+  forecastNext6HoursMm: [62.5, 54.0, 41.5, 28.0, 18.0, 8.5],
+  stormSurgeMeters: 4.85,
+  highSurgeAlert: true,
+  surgeWarningText: 'CRITICAL HIGH SURGE ALERT: +4.85m Astronomical Tide @ 18:45 IST coinciding with peak heavy monsoon downpour.',
+  windWarningText: 'GALE WIND RED ALERT: Sustained 58 km/h winds with severe gusts reaching 88 km/h.',
+  tidalHeightChartDatumMeters: 4.85,
+  coastalSluiceGateStatus: 'CLOSED_FOR_SURGE'
 };
 
 export const SATELLITE_PRESETS = [

@@ -124,6 +124,45 @@ export const EmergencyBroadcastModal: React.FC<EmergencyBroadcastModalProps> = (
           </div>
         )}
 
+        {/* Preset Emergency Templates */}
+        <div className="px-6 pt-3 flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setTitle('🔴 RED ALERT: HIGH ASTRONOMICAL TIDAL SURGE (+4.85m) & GALE WINDS');
+              setMessage('CRITICAL TIDAL SURGE WARNING: High tide peak +4.85m chart datum coinciding with 62mm/hr heavy downpour and 88 km/h wind gusts. Seawall sluice gates closed. All waterfront and low-lying coastal residents must stay indoors and avoid coastal promenades.');
+              setTargetWard('Ward H-East');
+            }}
+            className="px-2.5 py-1 rounded-lg bg-rose-950/80 border border-rose-700 hover:bg-rose-900 text-rose-200 text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1"
+          >
+            <span>🌊 Surge & Wind Preset</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setTitle('🌧️ TORRENTIAL DOWNPOUR & FLASH FLOOD WARNING');
+              setMessage('Heavy monsoon precipitation exceeding 62.5 mm/hr active across urban underpasses. Dewatering pumps running at maximum capacity. Citizens advised to avoid arterial transit corridors.');
+              setTargetWard('All Municipal Zones');
+            }}
+            className="px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-700 hover:bg-cyan-900 text-cyan-200 text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1"
+          >
+            <span>🌧️ Torrential Rain Preset</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setTitle('⚡ 33kV SUBSTATION BLACKOUT EMERGENCY');
+              setMessage('High-voltage feeder trip detected across Eastern Industrial Substation. Emergency lineman squads dispatched. Pumping station backup generators engaged.');
+              setTargetWard('Ward L-East');
+            }}
+            className="px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-700 hover:bg-amber-900 text-amber-200 text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1"
+          >
+            <span>⚡ Grid Outage Preset</span>
+          </button>
+        </div>
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Users, 
   Camera, 
@@ -15,7 +15,10 @@ import {
   Send,
   Wand2,
   Building2,
-  AlertTriangle
+  AlertTriangle,
+  Mic,
+  MicOff,
+  Volume2
 } from 'lucide-react';
 import { CitizenReport, IncidentCategory, Incident } from '../types';
 import confetti from 'canvas-confetti';
@@ -44,6 +47,84 @@ export const CommunityReporting: React.FC<CommunityReportingProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNlpExtracting, setIsNlpExtracting] = useState(false);
   const [nlpDepartment, setNlpDepartment] = useState<string | null>(null);
+
+  // Web Speech API State
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Cleanup speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  // Web Speech API Voice Dictation Toggle
+  const toggleListening = () => {
+    setSpeechError(null);
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setSpeechError('Web Speech API is not supported in this browser. Please try Google Chrome or Edge.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript) {
+          setDescription(transcript);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          setSpeechError('Microphone permission was denied. Please allow microphone access in your browser settings.');
+        } else if (event.error === 'no-speech') {
+          setSpeechError('No speech was detected. Please speak into your microphone.');
+        } else {
+          setSpeechError(`Speech recognition notice: ${event.error}`);
+        }
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err: any) {
+      console.error('Failed to start speech recognition:', err);
+      setSpeechError('Could not start microphone voice input.');
+      setIsListening(false);
+    }
+  };
 
   // Quick NLP extraction from free-text
   const handleNlpExtract = async () => {
@@ -155,29 +236,98 @@ export const CommunityReporting: React.FC<CommunityReportingProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Quick Natural Language AI Box */}
-            <div className="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-xl space-y-2">
-              <div className="flex items-center justify-between">
+            {/* Quick Natural Language AI Box & Voice Dictation */}
+            <div className="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-xl space-y-2.5">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
                   <Wand2 className="w-3.5 h-3.5 text-indigo-600" />
-                  NLP Auto-Extraction
+                  NLP Auto-Extraction &amp; Voice Input
                 </span>
-                <button
-                  type="button"
-                  onClick={handleNlpExtract}
-                  disabled={!description.trim() || isNlpExtracting}
-                  className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-semibold transition-all disabled:opacity-40 flex items-center gap-1"
-                >
-                  {isNlpExtracting ? 'Analyzing...' : 'Auto-Classify with AI'}
-                </button>
+
+                <div className="flex items-center gap-1.5">
+                  {/* Microphone Transcribe Button */}
+                  <button
+                    type="button"
+                    id="btn-voice-dictation"
+                    onClick={toggleListening}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      isListening
+                        ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-500/30 animate-pulse ring-2 ring-rose-400'
+                        : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 shadow-sm'
+                    }`}
+                    title={isListening ? 'Stop Voice Recording' : 'Dictate report using Microphone (Web Speech API)'}
+                  >
+                    {isListening ? (
+                      <>
+                        <MicOff className="w-3.5 h-3.5 text-white" />
+                        <span>Stop Mic</span>
+                        <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Speak Report</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleNlpExtract}
+                    disabled={!description.trim() || isNlpExtracting}
+                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-semibold transition-all disabled:opacity-40 flex items-center gap-1 cursor-pointer"
+                  >
+                    {isNlpExtracting ? 'Analyzing...' : 'Auto-Classify'}
+                  </button>
+                </div>
               </div>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                placeholder="e.g., 'Road near XYZ school has a huge pothole and water is overflowing from the drain slab'"
-                className="w-full p-2.5 bg-white border border-indigo-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
+
+              {/* Listening Indicator Bar */}
+              {isListening && (
+                <div className="p-2 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-between text-[11px] text-rose-800">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                    </span>
+                    <span className="font-bold">Microphone Active:</span>
+                    <span>Transcribing live speech into description...</span>
+                  </div>
+                  <Volume2 className="w-3.5 h-3.5 text-rose-600 animate-pulse shrink-0" />
+                </div>
+              )}
+
+              {/* Speech Recognition Error Banner */}
+              {speechError && (
+                <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between text-[11px] text-amber-900">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    {speechError}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSpeechError(null)}
+                    className="text-amber-700 hover:text-amber-950 font-bold ml-2 text-xs"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              <div className="relative">
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  placeholder="e.g., 'Road near XYZ school has a huge pothole and water is overflowing from the drain slab' — or click 'Speak Report' to dictate"
+                  className={`w-full p-2.5 bg-white border rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 ${
+                    isListening
+                      ? 'border-rose-400 ring-2 ring-rose-300'
+                      : 'border-indigo-200 focus:ring-indigo-500'
+                  }`}
+                />
+              </div>
+
               {nlpDepartment && (
                 <div className="p-2 rounded bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center gap-1.5 font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />

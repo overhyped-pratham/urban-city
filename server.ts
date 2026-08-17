@@ -28,6 +28,22 @@ let crews: MaintenanceCrew[] = [...INITIAL_CREWS];
 let citizenReports: CitizenReport[] = [...INITIAL_CITIZEN_REPORTS];
 let notifications: NotificationItem[] = [
   {
+    id: 'NOTIF-SURGE-01',
+    timestamp: new Date(Date.now() - 4 * 60000).toISOString(),
+    title: '🔴 HIGH ASTRONOMICAL TIDAL SURGE RED ALERT (+4.85m)',
+    message: 'Storm surge peak at +4.85m chart datum overlapping 62.5mm/hr heavy downpour. High coastal backwater inundation risk at Ward H-East & Ward G-North. Tidal sluice gates auto-closed.',
+    type: 'WEATHER_WARNING',
+    read: false
+  },
+  {
+    id: 'NOTIF-WIND-01',
+    timestamp: new Date(Date.now() - 12 * 60000).toISOString(),
+    title: '💨 GALE WIND & HEAVY RAIN WARNING (88 km/h Gusts)',
+    message: 'Gale wind gusts up to 88 km/h and torrential rainfall active across coastal corridors. High risk of uprooted trees and secondary power grid tripping.',
+    type: 'WEATHER_WARNING',
+    read: false
+  },
+  {
     id: 'NOTIF-01',
     timestamp: new Date(Date.now() - 38 * 60000).toISOString(),
     title: 'CRITICAL INUNDATION DETECTED',

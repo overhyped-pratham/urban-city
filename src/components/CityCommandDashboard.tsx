@@ -25,15 +25,17 @@ import {
   Lock,
   ChevronRight
 } from 'lucide-react';
-import { CityHealthOverview, WardRiskProfile, PredictiveFloodForecast, SegFormerSARWaterlogging, AuthorityLevel } from '../types';
-import { INITIAL_SAR_WATERLOGGING, AUTHORITY_USERS } from '../data/mockData';
+import { CityHealthOverview, WardRiskProfile, PredictiveFloodForecast, SegFormerSARWaterlogging, AuthorityLevel, WeatherData } from '../types';
+import { INITIAL_SAR_WATERLOGGING, AUTHORITY_USERS, INITIAL_WEATHER } from '../data/mockData';
 import { LiveWaterloggingMonitor } from './LiveWaterloggingMonitor';
 import { InteractiveEarthGlobe } from './InteractiveEarthGlobe';
+import { WindRainSurgeAlertBanner } from './WindRainSurgeAlertBanner';
 
 interface CityCommandDashboardProps {
   cityHealth: CityHealthOverview;
   wardProfiles: WardRiskProfile[];
   floodForecast: PredictiveFloodForecast;
+  weather?: WeatherData | null;
   sarData?: SegFormerSARWaterlogging;
   onNavigateTab: (tab: any) => void;
   onSelectWard: (ward: WardRiskProfile) => void;
@@ -42,12 +44,15 @@ interface CityCommandDashboardProps {
   onOpenAuthorityModal: () => void;
   onOpenApprovalQueue: () => void;
   pendingApprovalsCount: number;
+  onTriggerPushAlert?: (title: string, message: string) => void;
+  onOpenEmergencyBroadcast?: () => void;
 }
 
 export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
   cityHealth,
   wardProfiles,
   floodForecast,
+  weather = INITIAL_WEATHER,
   sarData = INITIAL_SAR_WATERLOGGING,
   onNavigateTab,
   onSelectWard,
@@ -55,7 +60,9 @@ export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
   currentAuthority,
   onOpenAuthorityModal,
   onOpenApprovalQueue,
-  pendingApprovalsCount
+  pendingApprovalsCount,
+  onTriggerPushAlert,
+  onOpenEmergencyBroadcast
 }) => {
   const [selectedVector, setSelectedVector] = useState<'ALL' | 'FLOOD' | 'HEAT' | 'WATER' | 'WASTE' | 'ROAD'>('ALL');
   const [simulating, setSimulating] = useState(false);
@@ -75,6 +82,14 @@ export const CityCommandDashboard: React.FC<CityCommandDashboardProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Severe Weather & High Surge Banner */}
+      <WindRainSurgeAlertBanner
+        weather={weather}
+        onTriggerPushAlert={onTriggerPushAlert}
+        onOpenEmergencyBroadcast={onOpenEmergencyBroadcast}
+        onViewMap={() => onNavigateTab('map')}
+      />
+
       {/* 2-Level Authority Context Bar */}
       <div className={`p-4 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-md ${
         isSuperMonitor 
