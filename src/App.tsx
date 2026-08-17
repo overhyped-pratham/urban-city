@@ -25,6 +25,7 @@ import { LandingPage } from './components/LandingPage';
 import { UserProfilePage } from './components/UserProfilePage';
 import { ControlNetSatelliteReconstruction } from './components/ControlNetSatelliteReconstruction';
 import { CitizenFeedbackPortal } from './components/CitizenFeedbackPortal';
+import { MLWorkbench } from './components/MLWorkbench';
 
 import { 
   Incident, 
@@ -66,7 +67,7 @@ import {
 import { playNotificationChime } from './utils/audio';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback'>('landing');
+  const [activeTab, setActiveTab] = useState<'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'mlworkbench' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback'>('landing');
   
   // User Profile State (persisted in localStorage)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -690,6 +691,14 @@ export default function App() {
             />
           </div>
         )}
+
+        {/* ML Model Workbench — 27-Model Transparent Registry */}
+        {activeTab === 'mlworkbench' && (
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            <MLWorkbench />
+          </div>
+        )}
+
 
         {/* GIS Map */}
         {activeTab === 'map' && (

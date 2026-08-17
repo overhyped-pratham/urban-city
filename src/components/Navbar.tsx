@@ -32,8 +32,8 @@ import { WeatherData, NotificationItem, CityHealthOverview, AuthorityLevel, User
 import { AUTHORITY_USERS } from '../data/mockData';
 
 interface NavbarProps {
-  activeTab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback';
-  setActiveTab: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback') => void;
+  activeTab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'mlworkbench' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback';
+  setActiveTab: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'mlworkbench' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback') => void;
   userProfile?: UserProfile;
   weather: WeatherData | null;
   cityHealth?: CityHealthOverview;
@@ -243,6 +243,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Waves className="w-3.5 h-3.5" />
             Predictive Hub
+          </button>
+
+          <button
+            id="nav-tab-mlworkbench"
+            onClick={() => setActiveTab('mlworkbench')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'mlworkbench'
+                ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md font-bold ring-1 ring-violet-400'
+                : 'text-violet-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <BrainCircuit className="w-3.5 h-3.5 text-violet-300" />
+            ML Workbench
           </button>
 
           <button

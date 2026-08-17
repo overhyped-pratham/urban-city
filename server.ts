@@ -16,6 +16,33 @@ import {
 } from './src/data/mockData.ts';
 import { Incident, MaintenanceCrew, CitizenReport, NotificationItem } from './src/types.ts';
 
+// ML & Spatial Intelligence Architecture Imports
+import {
+  getAllRegisteredModels,
+  getModelDefinition,
+  getModelsByDomain,
+  getModelsByExecutionMode
+} from './src/ml/registry.ts';
+import {
+  executeModelInference,
+  runFlagshipShowcasePipeline,
+  runCitywideAudit
+} from './src/ml/orchestrator.ts';
+import {
+  getUrbanDigitalState,
+  updateWardDigitalState
+} from './src/ml/urbanDigitalState.ts';
+import {
+  runAStarEmergencyRouting,
+  runDBSCANComplaintClustering,
+  runIsolationForestAnomaly
+} from './src/ml/spatialGraphAnomaly.ts';
+import {
+  runWhisperVoiceTranscription,
+  runBERTComplaintClassification,
+  runGeminiMultimodalComplaintCopilot
+} from './src/ml/nlpAudioMultimodal.ts';
+
 const app = express();
 const PORT = 3000;
 
@@ -677,6 +704,16 @@ app.get('/api/resilience/water-security', (req, res) => {
   res.json({ waterSecurity });
 });
 
+// Convenience alias: /api/weather → INITIAL_WEATHER
+app.get('/api/weather', (req, res) => {
+  res.json(INITIAL_WEATHER);
+});
+
+// Convenience alias: /api/city-health → cityHealth composite
+app.get('/api/city-health', (req, res) => {
+  res.json(cityHealth);
+});
+
 // AI Smart City Copilot (Gemini 2.5 Flash with live urban context)
 app.post('/api/ai-copilot', async (req, res) => {
   const { prompt, conversationHistory = [] } = req.body;
@@ -954,6 +991,139 @@ app.post('/api/notifications/broadcast', (req, res) => {
   });
 
   res.status(201).json({ success: true, notification: broadcastNotif, targetWard });
+});
+
+// ----------------------------------------------------
+// 🏙️ ML & SPATIAL INTELLIGENCE ROUTES (27 Models & Algorithms)
+// ----------------------------------------------------
+
+// 1. Get complete catalog of all 27 models & algorithms with execution modes and schemas
+app.get('/api/ml/models', (req, res) => {
+  const { domain, executionMode } = req.query;
+  let models = getAllRegisteredModels();
+
+  if (domain && typeof domain === 'string') {
+    models = getModelsByDomain(domain);
+  }
+  if (executionMode && typeof executionMode === 'string') {
+    models = getModelsByExecutionMode(executionMode);
+  }
+
+  res.json({
+    totalModelsCount: models.length,
+    timestamp: new Date().toISOString(),
+    models
+  });
+});
+
+// 2. Get specific model definition
+app.get('/api/ml/models/:id', (req, res) => {
+  const model = getModelDefinition(req.params.id);
+  if (!model) {
+    return res.status(404).json({ error: `Model '${req.params.id}' not found in registry.` });
+  }
+  res.json({ model });
+});
+
+// 3. Universal Inference Endpoint for any registered model
+app.post('/api/ml/predict/:modelId', async (req, res) => {
+  try {
+    const { modelId } = req.params;
+    const payload = req.body || {};
+
+    const modelDef = getModelDefinition(modelId);
+    if (!modelDef) {
+      return res.status(404).json({
+        error: `Model '${modelId}' not found. Check GET /api/ml/models for valid model identifiers.`
+      });
+    }
+
+    const result = await executeModelInference(modelId, payload);
+    res.json(result);
+  } catch (error: any) {
+    console.error(`Inference error on model ${req.params.modelId}:`, error);
+    res.status(500).json({
+      error: 'Inference execution failed',
+      modelId: req.params.modelId,
+      details: error?.message || String(error)
+    });
+  }
+});
+
+// 4. Flagship Showcase Pipeline (Sentinel-1 SAR → SegFormer-B2 → Risk Engine → A* Routing → Gemini Copilot → Work Order)
+app.post('/api/ml/pipeline/flagship-chain', async (req, res) => {
+  try {
+    const result = await runFlagshipShowcasePipeline(req.body || {});
+    res.json(result);
+  } catch (error: any) {
+    console.error('Flagship pipeline execution failed:', error);
+    res.status(500).json({ error: 'Flagship pipeline failed', details: error?.message || String(error) });
+  }
+});
+
+// 5. Citywide Multi-Model Audit (Synchronous evaluation of core models)
+app.post('/api/ml/pipeline/city-audit', async (req, res) => {
+  try {
+    const result = await runCitywideAudit(req.body || {});
+    res.json(result);
+  } catch (error: any) {
+    console.error('City audit pipeline execution failed:', error);
+    res.status(500).json({ error: 'City audit failed', details: error?.message || String(error) });
+  }
+});
+
+// 6. Dynamic Hazard-Avoidance Emergency Route (A* / Dijkstra)
+app.post('/api/ml/pipeline/emergency-route', (req, res) => {
+  try {
+    const result = runAStarEmergencyRouting(req.body || {});
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Emergency routing failed', details: error?.message || String(error) });
+  }
+});
+
+// 7. Spatial Complaint Hotspot Clustering (DBSCAN / HDBSCAN)
+app.post('/api/ml/pipeline/cluster-complaints', (req, res) => {
+  try {
+    const result = runDBSCANComplaintClustering(req.body || {});
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Spatial clustering failed', details: error?.message || String(error) });
+  }
+});
+
+// 8. Citizen Voice Grievance Intake & Translation (Whisper)
+app.post('/api/ml/pipeline/audio-transcribe', async (req, res) => {
+  try {
+    const result = await runWhisperVoiceTranscription(req.body || {});
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Audio transcription failed', details: error?.message || String(error) });
+  }
+});
+
+// 9. SCADA Multi-Sensor Telemetry Anomaly Detection (Isolation Forest)
+app.post('/api/ml/pipeline/sensor-anomaly', (req, res) => {
+  try {
+    const result = runIsolationForestAnomaly(req.body || {});
+    res.json(result);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Sensor anomaly check failed', details: error?.message || String(error) });
+  }
+});
+
+// 10. Urban Digital State & Ward Risk Management
+app.get('/api/ml/urban-state', (req, res) => {
+  res.json(getUrbanDigitalState());
+});
+
+app.patch('/api/ml/urban-state/:wardId', (req, res) => {
+  try {
+    const updated = updateWardDigitalState(req.params.wardId, req.body || {});
+    res.json({ success: true, ward: updated, state: getUrbanDigitalState() });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to update ward digital state', details: error?.message || String(error) });
+  }
 });
 
 // ----------------------------------------------------
