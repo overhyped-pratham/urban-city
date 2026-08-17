@@ -24,14 +24,16 @@ import {
   Home,
   User,
   MapPin,
-  Cpu
+  Cpu,
+  FileSpreadsheet,
+  UserCheck
 } from 'lucide-react';
 import { WeatherData, NotificationItem, CityHealthOverview, AuthorityLevel, UserProfile } from '../types';
 import { AUTHORITY_USERS } from '../data/mockData';
 
 interface NavbarProps {
-  activeTab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet';
-  setActiveTab: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet') => void;
+  activeTab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback';
+  setActiveTab: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback') => void;
   userProfile?: UserProfile;
   weather: WeatherData | null;
   cityHealth?: CityHealthOverview;
@@ -262,6 +264,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
+            id="nav-tab-feedback"
+            onClick={() => setActiveTab('feedback')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'feedback'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-bold ring-1 ring-purple-400'
+                : 'text-purple-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-purple-400" />
+            Feedback & Head Admin
+          </button>
+
+          <button
             id="nav-tab-profile"
             onClick={() => setActiveTab('profile')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
@@ -304,29 +319,35 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Action Controls & Authority Badge */}
         <div className="hidden md:flex items-center gap-2">
           
-          {/* 2-LEVEL AUTHORITY BADGE BUTTON */}
+          {/* 3-LEVEL AUTHORITY BADGE BUTTON */}
           <button
             id="btn-authority-switch"
             onClick={onOpenAuthorityModal}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-sm group ${
-              isSuperMonitor
+              currentAuthority === 'HEAD_ADMIN'
+                ? 'bg-purple-950/80 hover:bg-purple-900/90 text-purple-200 border-purple-700/80 shadow-purple-500/10'
+                : isSuperMonitor
                 ? 'bg-amber-950/80 hover:bg-amber-900/90 text-amber-200 border-amber-700/80 shadow-amber-500/10'
                 : 'bg-cyan-950/80 hover:bg-cyan-900/90 text-cyan-200 border-cyan-700/80 shadow-cyan-500/10'
             }`}
-            title="Click to switch or view 2-Level Authority clearance"
+            title="Click to switch or view 3-Level Command Clearance"
           >
             <div className={`p-1 rounded-lg ${
-              isSuperMonitor ? 'bg-amber-500/20 text-amber-400' : 'bg-cyan-500/20 text-cyan-400'
+              currentAuthority === 'HEAD_ADMIN'
+                ? 'bg-purple-500/20 text-purple-400'
+                : isSuperMonitor
+                ? 'bg-amber-500/20 text-amber-400'
+                : 'bg-cyan-500/20 text-cyan-400'
             }`}>
-              {isSuperMonitor ? <Crown className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
+              {currentAuthority === 'HEAD_ADMIN' ? <UserCheck className="w-3.5 h-3.5 text-purple-300" /> : isSuperMonitor ? <Crown className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
             </div>
             <div className="text-left leading-tight">
               <div className="text-[9px] font-mono uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <span>{isSuperMonitor ? 'Level 2' : 'Level 1'}</span>
+                <span>{currentAuthority === 'HEAD_ADMIN' ? 'Level 3' : isSuperMonitor ? 'Level 2' : 'Level 1'}</span>
                 <span className="w-1 h-1 rounded-full bg-emerald-400 animate-ping" />
               </div>
               <div className="text-xs font-bold text-white group-hover:text-amber-200 transition-colors">
-                {isSuperMonitor ? 'Super Monitor' : 'Monitor'}
+                {currentAuthority === 'HEAD_ADMIN' ? 'Head Admin' : isSuperMonitor ? 'Super Monitor' : 'Monitor'}
               </div>
             </div>
           </button>

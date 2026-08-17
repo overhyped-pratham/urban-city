@@ -67,6 +67,11 @@ export interface Incident {
   publicAdvisoryIssued?: boolean;
   resolutionNotes?: string;
   resolvedAt?: string;
+  headAdminVerified?: boolean;
+  headAdminResolutionStatus?: 'PENDING_HEAD_ADMIN_REVIEW' | 'VERIFIED_RESOLVED' | 'REOPENED_FOR_ACTION';
+  headAdminNotes?: string;
+  headAdminVerifiedAt?: string;
+  headAdminSignature?: string;
 }
 
 export type CrewType = 
@@ -316,7 +321,7 @@ export interface WeatherData {
   forecastNext6HoursMm: number[];
 }
 
-export type AuthorityLevel = 'MONITOR' | 'SUPER_MONITOR';
+export type AuthorityLevel = 'MONITOR' | 'SUPER_MONITOR' | 'HEAD_ADMIN';
 
 export interface AuthorityPermissions {
   canViewLiveFeed: boolean;
@@ -329,6 +334,26 @@ export interface AuthorityPermissions {
   canOverridePowerGrid: boolean;
   canSignOffWorkOrders: boolean;
   canAuditLogs: boolean;
+  canVerifyIssueResolution?: boolean;
+  canReopenUnresolvedIssue?: boolean;
+  canSignHeadAdminAudit?: boolean;
+  canAccessGoogleFeedbackPortal?: boolean;
+}
+
+export interface CitizenFeedbackItem {
+  id: string;
+  incidentId: string;
+  incidentTitle: string;
+  submittedAt: string;
+  citizenName: string;
+  citizenPhone?: string;
+  ward: string;
+  groundSituation: 'FULLY_SOLVED' | 'PARTIALLY_SOLVED' | 'NOT_SOLVED_CRITICAL';
+  responseRating: number; // 1 to 5
+  feedbackText: string;
+  photoUrl?: string;
+  googleFormResponseId: string;
+  verifiedByHeadAdmin?: boolean;
 }
 
 export interface AuthorityUser {

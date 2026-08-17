@@ -46,6 +46,7 @@ export const AuthoritySwitchModal: React.FC<AuthoritySwitchModalProps> = ({
 
   const monitorUser = AUTHORITY_USERS.MONITOR;
   const superMonitorUser = AUTHORITY_USERS.SUPER_MONITOR;
+  const headAdminUser = AUTHORITY_USERS.HEAD_ADMIN;
   const activeUser = AUTHORITY_USERS[currentAuthority];
 
   const handleApplySwitch = (targetLevel: AuthorityLevel) => {
@@ -113,12 +114,14 @@ export const AuthoritySwitchModal: React.FC<AuthoritySwitchModalProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-white">{activeUser.name}</span>
                   <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold flex items-center gap-1 ${
-                    currentAuthority === 'SUPER_MONITOR'
+                    currentAuthority === 'HEAD_ADMIN'
+                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                      : currentAuthority === 'SUPER_MONITOR'
                       ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                       : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                   }`}>
-                    {currentAuthority === 'SUPER_MONITOR' ? <Crown className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
-                    {currentAuthority === 'SUPER_MONITOR' ? 'LEVEL 2: SUPER MONITOR' : 'LEVEL 1: MONITOR'}
+                    {currentAuthority === 'HEAD_ADMIN' ? <Sparkles className="w-3 h-3 text-purple-400" /> : currentAuthority === 'SUPER_MONITOR' ? <Crown className="w-3 h-3 text-amber-400" /> : <Shield className="w-3 h-3 text-cyan-400" />}
+                    {currentAuthority === 'HEAD_ADMIN' ? 'LEVEL 3: HEAD ADMIN' : currentAuthority === 'SUPER_MONITOR' ? 'LEVEL 2: SUPER MONITOR' : 'LEVEL 1: MONITOR'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">{activeUser.title} • <span className="font-mono text-[11px] text-slate-500">{activeUser.badgeId}</span></p>
@@ -140,7 +143,7 @@ export const AuthoritySwitchModal: React.FC<AuthoritySwitchModalProps> = ({
               Select Authority Clearance Level
             </h4>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               
               {/* Card 1: Level 1 Monitor */}
               <div 
@@ -292,6 +295,79 @@ export const AuthoritySwitchModal: React.FC<AuthoritySwitchModalProps> = ({
                     }`}
                   >
                     {currentAuthority === 'SUPER_MONITOR' ? 'Current Session' : 'Switch to Super Monitor'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 3: Level 3 Head Admin Clearance */}
+              <div 
+                onClick={() => setSelectedLevel('HEAD_ADMIN')}
+                className={`relative p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  selectedLevel === 'HEAD_ADMIN'
+                    ? 'bg-purple-950/40 border-purple-500 ring-2 ring-purple-500/20 shadow-xl'
+                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                {currentAuthority === 'HEAD_ADMIN' && (
+                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-500 text-white">
+                    ACTIVE NOW
+                  </span>
+                )}
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-inner">
+                      <UserCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-mono text-purple-400 font-bold">LEVEL 3 AUTHORITY</div>
+                      <div className="text-sm font-bold text-white">{headAdminUser.title}</div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Supreme quality inspection clearance to verify whether reported incidents are genuinely solved or need reopening.
+                  </p>
+
+                  <div className="space-y-1.5 pt-2 border-t border-slate-800/80 text-[11px]">
+                    <div className="flex items-center gap-2 text-purple-300 font-semibold">
+                      <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-purple-400" />
+                      <span>Supreme Resolution Audit Authority</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>Inspect Solved Issues & Verify Field Proof</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>Evaluate Google Forms Citizen Ground Feedback</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>Officially Sign Off & Close Verified Solved Issues</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>Re-Open Unresolved Issues & Force Re-Dispatch</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-slate-400">PIN: 0000</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleApplySwitch('HEAD_ADMIN');
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      currentAuthority === 'HEAD_ADMIN'
+                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                        : 'bg-purple-600 hover:bg-purple-500 text-white font-black shadow-md shadow-purple-600/20'
+                    }`}
+                  >
+                    {currentAuthority === 'HEAD_ADMIN' ? 'Current Session' : 'Switch to Head Admin'}
                   </button>
                 </div>
               </div>

@@ -24,6 +24,7 @@ import { ApprovalQueueModal } from './components/ApprovalQueueModal';
 import { LandingPage } from './components/LandingPage';
 import { UserProfilePage } from './components/UserProfilePage';
 import { ControlNetSatelliteReconstruction } from './components/ControlNetSatelliteReconstruction';
+import { CitizenFeedbackPortal } from './components/CitizenFeedbackPortal';
 
 import { 
   Incident, 
@@ -42,7 +43,8 @@ import {
   AuthorityLevel,
   ApprovalRequest,
   AuditLogItem,
-  UserProfile
+  UserProfile,
+  CitizenFeedbackItem
 } from './types';
 import { 
   INITIAL_INCIDENTS, 
@@ -58,12 +60,13 @@ import {
   WARD_RISK_PROFILES,
   INITIAL_APPROVAL_REQUESTS,
   INITIAL_AUDIT_LOGS,
+  INITIAL_CITIZEN_FEEDBACK,
   AUTHORITY_USERS
 } from './data/mockData';
 import { playNotificationChime } from './utils/audio';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet'>('landing');
+  const [activeTab, setActiveTab] = useState<'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback'>('landing');
   
   // User Profile State (persisted in localStorage)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -119,6 +122,45 @@ export default function App() {
   const [heatwave, setHeatwave] = useState<HeatwaveForecastItem>(INITIAL_HEATWAVE);
   const [waterSecurity, setWaterSecurity] = useState<WaterSecurityForecastItem>(INITIAL_WATER_SECURITY);
   const [wardProfiles, setWardProfiles] = useState<WardRiskProfile[]>(WARD_RISK_PROFILES);
+
+  // Citizen Google Forms Feedback dataset
+  const [feedbackList, setFeedbackList] = useState<CitizenFeedbackItem[]>(INITIAL_CITIZEN_FEEDBACK);
+
+  const handleAddFeedback = useCallback((newFeedback: CitizenFeedbackItem) => {
+    setFeedbackList(prev => [newFeedback, ...prev]);
+  }, []);
+
+  const handleVerifyResolutionByHeadAdmin = useCallback((incidentId: string, isSolved: boolean, notes: string) => {
+    setIncidents(prev => prev.map(inc => {
+      if (inc.id === incidentId) {
+        return {
+          ...inc,
+          status: isSolved ? 'CLOSED' : 'IN_PROGRESS',
+          headAdminVerified: true,
+          headAdminResolutionStatus: isSolved ? 'VERIFIED_RESOLVED' : 'REOPENED_FOR_ACTION',
+          headAdminNotes: notes,
+          headAdminVerifiedAt: 'Just now',
+          headAdminSignature: 'SIG-HEAD-ADMIN-VERIFIED-991A'
+        };
+      }
+      return inc;
+    }));
+
+    // Log Head Admin Audit Log
+    const newAudit: AuditLogItem = {
+      id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
+      timestamp: 'Just now',
+      actorName: AUTHORITY_USERS.HEAD_ADMIN.name,
+      actorLevel: 'HEAD_ADMIN',
+      actionTitle: isSolved 
+        ? `Officially Signed Off & Closed Incident #${incidentId}` 
+        : `Re-Opened Incident #${incidentId} Based on Ground Citizen Audit`,
+      targetEntity: `Incident #${incidentId}`,
+      category: 'HEAD_ADMIN_RESOLUTION_AUDIT',
+      digitalSignature: 'SIG-HEAD-ADMIN-VERIFIED-991A'
+    };
+    setAuditLogs(prev => [newAudit, ...prev]);
+  }, []);
 
   // Modals & Drawers state
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
@@ -560,6 +602,18 @@ export default function App() {
         {/* ControlNet Satellite Reconstruction ML Model */}
         {activeTab === 'controlnet' && (
           <ControlNetSatelliteReconstruction />
+        )}
+
+        {/* Citizen Google Forms Feedback & Head Admin Resolution Portal */}
+        {activeTab === 'feedback' && (
+          <CitizenFeedbackPortal
+            incidents={incidents}
+            currentAuthority={currentAuthority}
+            onSwitchAuthority={setCurrentAuthority}
+            feedbackList={feedbackList}
+            onAddFeedback={handleAddFeedback}
+            onVerifyResolutionByHeadAdmin={handleVerifyResolutionByHeadAdmin}
+          />
         )}
 
         {/* Command Dashboard */}

@@ -14,7 +14,8 @@ import {
   HistoricalRiskHotspot,
   AuthorityUser,
   ApprovalRequest,
-  AuditLogItem
+  AuditLogItem,
+  CitizenFeedbackItem
 } from '../types';
 
 export const INITIAL_WEATHER: WeatherData = {
@@ -1132,10 +1133,89 @@ export const AUTHORITY_USERS: Record<string, AuthorityUser> = {
       canTuneAiThresholds: true,
       canOverridePowerGrid: true,
       canSignOffWorkOrders: true,
-      canAuditLogs: true
+      canAuditLogs: true,
+      canVerifyIssueResolution: true,
+      canReopenUnresolvedIssue: true,
+      canSignHeadAdminAudit: true,
+      canAccessGoogleFeedbackPortal: true
+    }
+  },
+  HEAD_ADMIN: {
+    id: 'USR-HEAD-ADMIN-001',
+    name: 'Director General R. K. Varma',
+    title: 'Supreme Head Admin & Chief Quality Inspection Director',
+    level: 'HEAD_ADMIN',
+    badgeId: 'L3-HEAD-ADMIN-99X',
+    department: 'Supreme Municipal Oversight & Quality Resolution Command',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80',
+    securityClearance: 'Level 3 - Head Admin (Supreme Resolution Audit & Final Sign-Off Clearance)',
+    pinCode: '0000',
+    permissions: {
+      canViewLiveFeed: true,
+      canQueryGisMaps: true,
+      canDraftEscalations: true,
+      canDispatchRoutineCrew: true,
+      canApproveCriticalDispatch: true,
+      canBroadcastCitywide: true,
+      canTuneAiThresholds: true,
+      canOverridePowerGrid: true,
+      canSignOffWorkOrders: true,
+      canAuditLogs: true,
+      canVerifyIssueResolution: true,
+      canReopenUnresolvedIssue: true,
+      canSignHeadAdminAudit: true,
+      canAccessGoogleFeedbackPortal: true
     }
   }
 };
+
+export const INITIAL_CITIZEN_FEEDBACK: CitizenFeedbackItem[] = [
+  {
+    id: 'FBK-2026-101',
+    incidentId: 'INC-2026-8812',
+    incidentTitle: 'Sector 4 Expressway Underpass Inundation',
+    submittedAt: '12 mins ago',
+    citizenName: 'Rahul Deshmukh',
+    citizenPhone: '+91 98201 44210',
+    ward: 'Ward G-North',
+    groundSituation: 'FULLY_SOLVED',
+    responseRating: 5,
+    feedbackText: 'The heavy dewatering pump squad arrived within 20 mins. Water on underpass is 100% drained and traffic is moving normally now. Great work!',
+    photoUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=600&q=80',
+    googleFormResponseId: 'GFORM-RESP-8849102',
+    verifiedByHeadAdmin: true
+  },
+  {
+    id: 'FBK-2026-102',
+    incidentId: 'INC-2026-8814',
+    incidentTitle: 'Eastern Industrial Substation Grid Blackout',
+    submittedAt: '28 mins ago',
+    citizenName: 'Priya Sundaram',
+    citizenPhone: '+91 97112 33091',
+    ward: 'Ward L-East',
+    groundSituation: 'PARTIALLY_SOLVED',
+    responseRating: 3,
+    feedbackText: 'Feeder line repair crew is on site and power restored in Sector 2, but streetlights in Sector 3 remain dark. Need Head Admin inspection.',
+    photoUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80',
+    googleFormResponseId: 'GFORM-RESP-8849103',
+    verifiedByHeadAdmin: false
+  },
+  {
+    id: 'FBK-2026-103',
+    incidentId: 'INC-2026-8815',
+    incidentTitle: 'Mahim Bay Storm Drain Overflow & Debris Blockage',
+    submittedAt: '45 mins ago',
+    citizenName: 'Amitabh Sen',
+    citizenPhone: '+91 99820 11928',
+    ward: 'Ward F-South',
+    groundSituation: 'NOT_SOLVED_CRITICAL',
+    responseRating: 1,
+    feedbackText: 'Drainage blockage still severe despite crew marking in-progress! Trash is clogging culvert #4 and water level rising near market area.',
+    photoUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=600&q=80',
+    googleFormResponseId: 'GFORM-RESP-8849104',
+    verifiedByHeadAdmin: false
+  }
+];
 
 export const INITIAL_APPROVAL_REQUESTS: ApprovalRequest[] = [
   {

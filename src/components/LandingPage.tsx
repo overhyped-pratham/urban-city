@@ -25,7 +25,9 @@ import {
   Eye,
   Lock,
   Globe2,
-  Cpu
+  Cpu,
+  FileSpreadsheet,
+  UserCheck
 } from 'lucide-react';
 import { UserProfile, AuthorityLevel } from '../types';
 import { PRESET_DESTINATIONS } from './InteractiveEarthGlobe';
@@ -33,7 +35,7 @@ import { PRESET_DESTINATIONS } from './InteractiveEarthGlobe';
 interface LandingPageProps {
   userProfile: UserProfile;
   onUpdateProfile: (updated: Partial<UserProfile>) => void;
-  onNavigate: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet') => void;
+  onNavigate: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet' | 'feedback') => void;
   currentAuthority: AuthorityLevel;
   onOpenAuthorityModal: () => void;
 }
@@ -328,6 +330,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             <p className="text-slate-300 text-xs mt-3 leading-relaxed max-w-4xl">
               Deep learning satellite image reconstruction conditioned on Digital Elevation Models (DEM), 3D building heights, cloud removal algorithms, and sub-surface flood inundation maps. Reconstructs high-definition terrain elevation with sub-meter accuracy.
+            </p>
+          </div>
+
+          {/* Featured Card: Google Forms Citizen Feedback & Head Admin Resolution Audit */}
+          <div 
+            onClick={() => onNavigate('feedback')}
+            className="group bg-gradient-to-b from-purple-950/80 to-slate-900 border border-purple-500/60 hover:border-purple-400 rounded-3xl p-6 transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 relative overflow-hidden flex flex-col justify-between col-span-1 md:col-span-2 lg:col-span-3 ring-1 ring-purple-500/30"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all pointer-events-none" />
+
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-purple-400 flex items-center justify-center text-white shadow-xl shadow-purple-500/20 group-hover:scale-110 transition-transform">
+                  <FileSpreadsheet className="w-7 h-7" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-purple-950 text-purple-300 border border-purple-800 uppercase font-bold">
+                      Google Forms Ground Check & Head Admin Audit
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                      Level 3 Clearance
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-black text-white group-hover:text-purple-300 transition-colors flex items-center gap-2 mt-1">
+                    <span>Citizen Issue Solved Checker & Head Admin Verification</span>
+                    <ChevronRight className="w-5 h-5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </h3>
+                </div>
+              </div>
+
+              <div className="px-4 py-2 rounded-xl bg-purple-600 group-hover:bg-purple-500 text-white font-black text-xs shadow-lg shadow-purple-500/30 transition-all flex items-center gap-2 whitespace-nowrap">
+                <span>Open Google Forms Portal</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+
+            <p className="text-slate-300 text-xs mt-3 leading-relaxed max-w-4xl">
+              Citizens provide ground reports via Google Forms to check if local waterlogging or emergency hazards are genuinely solved. Level 3 Head Admin inspects citizen feedback, satellite scans, and crew completion reports before issuing final digital sign-off or reopening issues.
             </p>
           </div>
 
