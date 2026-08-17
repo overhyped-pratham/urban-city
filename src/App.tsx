@@ -23,6 +23,7 @@ import { ApprovalQueueModal } from './components/ApprovalQueueModal';
 
 import { LandingPage } from './components/LandingPage';
 import { UserProfilePage } from './components/UserProfilePage';
+import { ControlNetSatelliteReconstruction } from './components/ControlNetSatelliteReconstruction';
 
 import { 
   Incident, 
@@ -62,7 +63,7 @@ import {
 import { playNotificationChime } from './utils/audio';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile'>('landing');
+  const [activeTab, setActiveTab] = useState<'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet'>('landing');
   
   // User Profile State (persisted in localStorage)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -554,6 +555,11 @@ export default function App() {
             auditLogs={auditLogs}
             onNavigate={setActiveTab}
           />
+        )}
+
+        {/* ControlNet Satellite Reconstruction ML Model */}
+        {activeTab === 'controlnet' && (
+          <ControlNetSatelliteReconstruction />
         )}
 
         {/* Command Dashboard */}

@@ -401,3 +401,33 @@ export interface AuditLogItem {
   digitalSignature: string;
 }
 
+export interface ControlNetSatConfig {
+  repoUrl: string;
+  modelName: string;
+  conditioningMode: 'DEM_DEPTH' | 'BUILDING_HEIGHT' | 'CLOUD_REMOVAL' | 'INUNDATION_SUB_SURFACE';
+  guidanceScale: number;
+  controlNetScale: number;
+  resolution: '512' | '768' | '1024';
+  numInferenceSteps: number;
+  seed: number;
+}
+
+export interface ControlNetReconstructionResult {
+  id: string;
+  title: string;
+  location: string;
+  lat: number;
+  lng: number;
+  originalImageUrl: string;
+  conditioningMapUrl: string; // depth/edge/DEM map
+  reconstructedImageUrl: string;
+  buildingHeightMapUrl?: string;
+  psnrDb: number;
+  ssimScore: number;
+  maeHeightMeters: number;
+  demResolutionMeters: number;
+  reconstructionTimeMs: number;
+  buildingCount: number;
+  detectedBuildings: { name: string; heightMeters: number; status: string }[];
+}
+

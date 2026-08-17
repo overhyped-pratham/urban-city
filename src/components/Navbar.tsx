@@ -23,14 +23,15 @@ import {
   FileCheck2,
   Home,
   User,
-  MapPin
+  MapPin,
+  Cpu
 } from 'lucide-react';
 import { WeatherData, NotificationItem, CityHealthOverview, AuthorityLevel, UserProfile } from '../types';
 import { AUTHORITY_USERS } from '../data/mockData';
 
 interface NavbarProps {
-  activeTab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile';
-  setActiveTab: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile') => void;
+  activeTab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet';
+  setActiveTab: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile' | 'controlnet') => void;
   userProfile?: UserProfile;
   weather: WeatherData | null;
   cityHealth?: CityHealthOverview;
@@ -201,6 +202,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Map className="w-3.5 h-3.5" />
             GIS Map
+          </button>
+
+          <button
+            id="nav-tab-controlnet"
+            onClick={() => setActiveTab('controlnet')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'controlnet'
+                ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-md font-bold ring-1 ring-cyan-400'
+                : 'text-cyan-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Cpu className="w-3.5 h-3.5 text-cyan-300" />
+            ControlNet ML
           </button>
 
           <button
