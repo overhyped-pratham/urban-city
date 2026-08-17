@@ -20,14 +20,18 @@ import {
   Waves,
   Shield,
   Crown,
-  FileCheck2
+  FileCheck2,
+  Home,
+  User,
+  MapPin
 } from 'lucide-react';
-import { WeatherData, NotificationItem, CityHealthOverview, AuthorityLevel } from '../types';
+import { WeatherData, NotificationItem, CityHealthOverview, AuthorityLevel, UserProfile } from '../types';
 import { AUTHORITY_USERS } from '../data/mockData';
 
 interface NavbarProps {
-  activeTab: 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics';
-  setActiveTab: (tab: 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics') => void;
+  activeTab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile';
+  setActiveTab: (tab: 'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile') => void;
+  userProfile?: UserProfile;
   weather: WeatherData | null;
   cityHealth?: CityHealthOverview;
   notifications: NotificationItem[];
@@ -49,6 +53,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
+  userProfile,
   weather,
   cityHealth,
   unreadNotifsCount,
@@ -72,10 +77,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="bg-slate-950/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-2.5 shadow-xl text-slate-100">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         
-        {/* Brand & City Health Indicator */}
+        {/* Brand & User Details Indicator */}
         <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
           <div 
-            onClick={() => setActiveTab('command')}
+            onClick={() => setActiveTab('landing')}
             className="flex items-center gap-2.5 cursor-pointer group"
           >
             <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
@@ -89,11 +94,31 @@ export const Navbar: React.FC<NavbarProps> = ({
                   Urban Resilience <span className="text-indigo-400 text-xs px-1.5 py-0.5 bg-indigo-950/80 border border-indigo-700/60 rounded font-mono">AI OS</span>
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium">
-                Predictive Municipal Intelligence
+              <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                <span>Predictive Municipal Intelligence</span>
               </p>
             </div>
           </div>
+
+          {/* Persistent User Badge Button */}
+          {userProfile && (
+            <button
+              onClick={() => setActiveTab('profile')}
+              className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer text-left"
+              title="Click to manage User Profile & Operating Location"
+            >
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">
+                {userProfile.avatarInitials}
+              </div>
+              <div className="text-[11px] leading-tight">
+                <div className="font-bold text-slate-200 truncate max-w-[110px]">{userProfile.name}</div>
+                <div className="text-[9px] text-cyan-400 flex items-center gap-0.5">
+                  <MapPin className="w-2.5 h-2.5 text-cyan-400" />
+                  <span className="truncate max-w-[100px]">{userProfile.location}</span>
+                </div>
+              </div>
+            </button>
+          )}
 
           {/* Quick status pill for mobile */}
           <div className="flex md:hidden items-center gap-2">
@@ -125,6 +150,33 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Navigation Tabs */}
         <nav className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 overflow-x-auto max-w-full">
+          
+          <button
+            id="nav-tab-landing"
+            onClick={() => setActiveTab('landing')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'landing'
+                ? 'bg-indigo-600 text-white shadow-md font-bold'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Home className="w-3.5 h-3.5 text-indigo-300" />
+            Home
+          </button>
+
+          <button
+            id="nav-tab-globe"
+            onClick={() => setActiveTab('globe')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'globe'
+                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md font-bold'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5 text-cyan-300" />
+            3D Globe
+          </button>
+
           <button
             id="nav-tab-command"
             onClick={() => setActiveTab('command')}
@@ -149,19 +201,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Map className="w-3.5 h-3.5" />
             GIS Map
-          </button>
-
-          <button
-            id="nav-tab-globe"
-            onClick={() => setActiveTab('globe')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-              activeTab === 'globe'
-                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <Globe className="w-3.5 h-3.5 text-cyan-300" />
-            3D Globe
           </button>
 
           <button
@@ -206,6 +245,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {criticalIncidentsCount}
               </span>
             )}
+          </button>
+
+          <button
+            id="nav-tab-profile"
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'profile'
+                ? 'bg-indigo-600 text-white shadow-md font-bold'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <User className="w-3.5 h-3.5 text-cyan-400" />
+            Profile
           </button>
 
           <button

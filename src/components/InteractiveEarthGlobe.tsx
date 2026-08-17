@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
+import { WORLD_COUNTRIES_GEOJSON, extractGeoJsonLines } from '../data/worldCountriesGeoJson';
 import { 
   Globe, 
   MapPin, 
@@ -47,7 +48,143 @@ export interface GlobalDestination {
 }
 
 export const PRESET_DESTINATIONS: GlobalDestination[] = [
-  // ASIA
+  // ASIA - CHINA & REGIONAL HUBS
+  {
+    id: 'beijing',
+    name: 'Beijing',
+    country: 'China',
+    flag: '🇨🇳',
+    continent: 'Asia',
+    lat: 39.9042,
+    lng: 116.4074,
+    category: 'Capital',
+    tempC: 24,
+    condition: 'Partly Cloudy',
+    aqi: 65,
+    riskLevel: 'MEDIUM',
+    description: 'Northern China plain mega-city capital with artificial intelligence storm drain network.',
+    population: '21.5 M',
+    utcOffset: 8
+  },
+  {
+    id: 'shanghai',
+    name: 'Shanghai',
+    country: 'China',
+    flag: '🇨🇳',
+    continent: 'Asia',
+    lat: 31.2304,
+    lng: 121.4737,
+    category: 'Megacity',
+    tempC: 28,
+    condition: 'Coastal Breeze',
+    aqi: 45,
+    riskLevel: 'LOW',
+    description: 'Yangtze River Delta deep-water port, smart tidal barriers & automated sluice telemetry.',
+    population: '29.2 M',
+    utcOffset: 8
+  },
+  {
+    id: 'shenzhen',
+    name: 'Shenzhen',
+    country: 'China',
+    flag: '🇨🇳',
+    continent: 'Asia',
+    lat: 22.5431,
+    lng: 114.0579,
+    category: 'Megacity',
+    tempC: 31,
+    condition: 'Humid & Clear',
+    aqi: 38,
+    riskLevel: 'MEDIUM',
+    description: 'Greater Bay Area tech epicenter with real-time drone flood inspection & sensor mesh.',
+    population: '17.6 M',
+    utcOffset: 8
+  },
+  {
+    id: 'guangzhou',
+    name: 'Guangzhou',
+    country: 'China',
+    flag: '🇨🇳',
+    continent: 'Asia',
+    lat: 23.1291,
+    lng: 113.2644,
+    category: 'Megacity',
+    tempC: 32,
+    condition: 'Tropical Showers',
+    aqi: 52,
+    riskLevel: 'HIGH',
+    description: 'Pearl River delta metropolis with automated urban drainage pumps & river telemetry.',
+    population: '18.7 M',
+    utcOffset: 8
+  },
+  {
+    id: 'chengdu',
+    name: 'Chengdu',
+    country: 'China',
+    flag: '🇨🇳',
+    continent: 'Asia',
+    lat: 30.5728,
+    lng: 104.0668,
+    category: 'Megacity',
+    tempC: 26,
+    condition: 'Overcast',
+    aqi: 58,
+    riskLevel: 'LOW',
+    description: 'Sichuan Basin tech center with integrated mountain water runoff reservoirs.',
+    population: '21.2 M',
+    utcOffset: 8
+  },
+  {
+    id: 'wuhan',
+    name: 'Wuhan',
+    country: 'China',
+    flag: '🇨🇳',
+    continent: 'Asia',
+    lat: 30.5928,
+    lng: 114.3055,
+    category: 'Megacity',
+    tempC: 29,
+    condition: 'Partly Cloudy',
+    aqi: 62,
+    riskLevel: 'MEDIUM',
+    description: 'Central China Yangtze river junction with automated sponge city retention basins.',
+    population: '13.7 M',
+    utcOffset: 8
+  },
+  {
+    id: 'hongkong',
+    name: 'Hong Kong',
+    country: 'China',
+    flag: '🇭🇰',
+    continent: 'Asia',
+    lat: 22.3193,
+    lng: 114.1694,
+    category: 'Financial',
+    tempC: 30,
+    condition: 'Coastal Humid',
+    aqi: 35,
+    riskLevel: 'HIGH',
+    description: 'Underground flood storage giant caverns & real-time typhoon wave sensors.',
+    population: '7.5 M',
+    utcOffset: 8
+  },
+  {
+    id: 'xian',
+    name: 'Xi\'an',
+    country: 'China',
+    flag: '🇨🇳',
+    continent: 'Asia',
+    lat: 34.3416,
+    lng: 108.9398,
+    category: 'Megacity',
+    tempC: 27,
+    condition: 'Sunny',
+    aqi: 70,
+    riskLevel: 'LOW',
+    description: 'Guanzhong Plain inland logistics hub with smart reservoir distribution controls.',
+    population: '13.0 M',
+    utcOffset: 8
+  },
   {
     id: 'indore',
     name: 'Indore',
@@ -98,23 +235,6 @@ export const PRESET_DESTINATIONS: GlobalDestination[] = [
     description: 'High-density coastal metropolis with active seismic & typhoon monitoring networks.',
     population: '37.4 M',
     utcOffset: 9
-  },
-  {
-    id: 'beijing',
-    name: 'Beijing',
-    country: 'China',
-    flag: '🇨🇳',
-    continent: 'Asia',
-    lat: 39.9042,
-    lng: 116.4074,
-    category: 'Capital',
-    tempC: 24,
-    condition: 'Partly Cloudy',
-    aqi: 65,
-    riskLevel: 'MEDIUM',
-    description: 'Northern China plain mega-city with artificial intelligence storm drain network.',
-    population: '21.5 M',
-    utcOffset: 8
   },
   {
     id: 'singapore',
@@ -620,7 +740,27 @@ export function calculateSunDirection(date: Date = new Date()): THREE.Vector3 {
   return latLngToVector3(sunLat, sunLng, 1).normalize();
 }
 
-// Procedural Day Texture Canvas with Realistic Continent & Country Boundaries
+// 3D GeoJSON Glowing Country Boundaries Component
+function GeoJsonCountryBorders({ color = '#38bdf8', opacity = 0.85, lineWidth = 1.2 }: { color?: string; opacity?: number; lineWidth?: number }) {
+  const lineData = useMemo(() => extractGeoJsonLines(5.018), []);
+
+  return (
+    <group>
+      {lineData.map((item, idx) => (
+        <Line
+          key={idx}
+          points={item.points}
+          color={color}
+          lineWidth={lineWidth}
+          transparent
+          opacity={opacity}
+        />
+      ))}
+    </group>
+  );
+}
+
+// Procedural Day Texture Canvas with Real GeoJSON Country Boundaries
 function createDayTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 2048;
@@ -663,69 +803,35 @@ function createDayTexture(): THREE.CanvasTexture {
   ctx.lineTo(canvas.width, canvas.height / 2);
   ctx.stroke();
 
-  // Continent Landmasses (Detailed real geometries)
-  ctx.fillStyle = '#1e293b';
-  ctx.strokeStyle = '#38bdf8';
-  ctx.lineWidth = 1.5;
+  // Draw GeoJSON Real World Country Landmasses & Boundaries
+  WORLD_COUNTRIES_GEOJSON.features.forEach(feature => {
+    const geom = feature.geometry;
+    const renderRing = (coords: number[][]) => {
+      ctx.beginPath();
+      coords.forEach(([lng, lat], i) => {
+        const x = ((lng + 180) / 360) * canvas.width;
+        const y = ((90 - lat) / 180) * canvas.height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = '#1e293b';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    };
 
-  const drawPoly = (coords: Array<[number, number]>, fill = '#1e293b', stroke = '#38bdf8', lw = 1.5) => {
-    ctx.fillStyle = fill;
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = lw;
-    ctx.beginPath();
-    coords.forEach(([lng, lat], i) => {
-      const x = ((lng + 180) / 360) * canvas.width;
-      const y = ((90 - lat) / 180) * canvas.height;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  };
-
-  // North America
-  drawPoly([[-168,66], [-150,70], [-130,72], [-105,74], [-80,72], [-60,60], [-55,48], [-65,44], [-75,35], [-80,25], [-90,16], [-105,20], [-118,32], [-125,48], [-140,58], [-168,66]]);
-  // Greenland
-  drawPoly([[-72,78], [-40,83], [-20,75], [-40,60], [-55,65], [-72,78]], '#334155', '#94a3b8');
-  // South America
-  drawPoly([[-80,10], [-60,12], [-35,-5], [-38,-15], [-48,-28], [-65,-50], [-75,-55], [-78,-40], [-80,-5], [-80,10]]);
-  // Europe
-  drawPoly([[-10,36], [0,44], [10,50], [25,58], [32,70], [60,68], [40,50], [30,42], [22,38], [15,38], [0,42], [-10,36]]);
-  // British Isles
-  drawPoly([[-10,50], [-2,58], [2,52], [-5,50], [-10,50]], '#1e293b', '#38bdf8');
-  // Scandinavia
-  drawPoly([[5,58], [18,60], [28,70], [20,71], [10,62], [5,58]]);
-  // Africa
-  drawPoly([[-17,35], [10,37], [32,32], [42,12], [51,11], [42,-15], [33,-34], [18,-34], [12,-10], [-15,10], [-17,35]]);
-  // Madagascar
-  drawPoly([[43,-12], [50,-15], [47,-25], [43,-22], [43,-12]]);
-  // Asia
-  drawPoly([[30,42], [40,50], [60,68], [100,75], [140,72], [170,66], [140,40], [120,30], [105,10], [95,15], [78,8], [68,24], [55,25], [45,12], [35,32], [30,42]]);
-  // India Peninsula
-  drawPoly([[68,24], [88,22], [80,8], [72,18], [68,24]], '#1e293b', '#6366f1', 2);
-  // Southeast Asia & Japan
-  drawPoly([[100,20], [108,10], [102,2], [104,-6], [115,4], [120,22], [100,20]]);
-  drawPoly([[130,31], [140,36], [142,43], [136,36], [130,31]], '#1e293b', '#38bdf8');
-  // Australia
-  drawPoly([[114,-22], [130,-12], [145,-15], [153,-28], [140,-38], [115,-35], [114,-22]]);
-  // New Zealand
-  drawPoly([[166,-46], [178,-37], [174,-42], [166,-46]]);
-  // Antarctica
-  drawPoly([[-180,-75], [0,-70], [180,-75], [180,-90], [-180,-90]], '#f8fafc', '#cbd5e1', 2);
-
-  // Draw Country Borders overlay lines
-  ctx.strokeStyle = 'rgba(244, 63, 94, 0.4)';
-  ctx.lineWidth = 1;
-  // US/Canada Border
-  ctx.beginPath();
-  ctx.moveTo((( -125 + 180) / 360) * canvas.width, ((90 - 49) / 180) * canvas.height);
-  ctx.lineTo((( -67 + 180) / 360) * canvas.width, ((90 - 49) / 180) * canvas.height);
-  ctx.stroke();
+    if (geom.type === 'Polygon') {
+      (geom.coordinates as number[][][]).forEach(ring => renderRing(ring));
+    } else if (geom.type === 'MultiPolygon') {
+      (geom.coordinates as number[][][][]).forEach(poly => poly.forEach(ring => renderRing(ring)));
+    }
+  });
 
   // Country Name Labels on Canvas
   ctx.font = 'bold 12px sans-serif';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
   const drawLabel = (text: string, lat: number, lng: number) => {
     const x = ((lng + 180) / 360) * canvas.width;
     const y = ((90 - lat) / 180) * canvas.height;
@@ -741,13 +847,17 @@ function createDayTexture(): THREE.CanvasTexture {
   drawLabel('JAPAN', 36, 138);
   drawLabel('UK', 54, -2);
   drawLabel('RUSSIA', 60, 90);
+  drawLabel('CANADA', 56, -106);
+  drawLabel('GERMANY', 51, 10);
+  drawLabel('ARGENTINA', -38, -63);
+  drawLabel('SOUTH AFRICA', -30, 24);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.needsUpdate = true;
   return tex;
 }
 
-// Procedural Night Texture Canvas with Glowing City Lights
+// Procedural Night Texture Canvas with GeoJSON & Glowing City Lights
 function createNightTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 2048;
@@ -757,26 +867,31 @@ function createNightTexture(): THREE.CanvasTexture {
   ctx.fillStyle = '#02040a';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = '#0b1329';
-  const drawPoly = (coords: Array<[number, number]>) => {
-    ctx.beginPath();
-    coords.forEach(([lng, lat], i) => {
-      const x = ((lng + 180) / 360) * canvas.width;
-      const y = ((90 - lat) / 180) * canvas.height;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.closePath();
-    ctx.fill();
-  };
+  // Draw GeoJSON Landmasses
+  WORLD_COUNTRIES_GEOJSON.features.forEach(feature => {
+    const geom = feature.geometry;
+    const renderRing = (coords: number[][]) => {
+      ctx.beginPath();
+      coords.forEach(([lng, lat], i) => {
+        const x = ((lng + 180) / 360) * canvas.width;
+        const y = ((90 - lat) / 180) * canvas.height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = '#0b1329';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    };
 
-  drawPoly([[-168,66], [-150,70], [-130,72], [-105,74], [-80,72], [-60,60], [-55,48], [-65,44], [-75,35], [-80,25], [-90,16], [-105,20], [-118,32], [-125,48], [-140,58], [-168,66]]);
-  drawPoly([[-80,10], [-60,12], [-35,-5], [-38,-15], [-48,-28], [-65,-50], [-75,-55], [-78,-40], [-80,-5], [-80,10]]);
-  drawPoly([[-10,36], [0,44], [10,50], [25,58], [32,70], [60,68], [40,50], [30,42], [22,38], [15,38], [0,42], [-10,36]]);
-  drawPoly([[-17,35], [10,37], [32,32], [42,12], [51,11], [42,-15], [33,-34], [18,-34], [12,-10], [-15,10], [-17,35]]);
-  drawPoly([[30,42], [40,50], [60,68], [100,75], [140,72], [170,66], [140,40], [120,30], [105,10], [95,15], [78,8], [68,24], [55,25], [45,12], [35,32], [30,42]]);
-  drawPoly([[68,24], [88,22], [80,8], [72,18], [68,24]]);
-  drawPoly([[114,-22], [130,-12], [145,-15], [153,-28], [140,-38], [115,-35], [114,-22]]);
+    if (geom.type === 'Polygon') {
+      (geom.coordinates as number[][][]).forEach(ring => renderRing(ring));
+    } else if (geom.type === 'MultiPolygon') {
+      (geom.coordinates as number[][][][]).forEach(poly => poly.forEach(ring => renderRing(ring)));
+    }
+  });
 
   // Golden City Lights on all preset locations
   PRESET_DESTINATIONS.forEach(city => {
@@ -893,6 +1008,166 @@ const AtmosphereHaloShader = {
   `
 };
 
+// Component: Digital Sci-Fi Floating Particle Cloud (webgl-digital-globe inspired)
+function DigitalParticleCloud({ count = 850 }: { count?: number }) {
+  const pointsRef = useRef<THREE.Points>(null);
+
+  const [positions, colors] = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+
+    const cyan = new THREE.Color('#38bdf8');
+    const indigo = new THREE.Color('#818cf8');
+    const rose = new THREE.Color('#f43f5e');
+
+    for (let i = 0; i < count; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = 5.25 + Math.random() * 2.5;
+
+      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      pos[i * 3 + 2] = r * Math.cos(phi);
+
+      const mixedColor = Math.random() > 0.6 ? cyan : (Math.random() > 0.4 ? indigo : rose);
+      col[i * 3] = mixedColor.r;
+      col[i * 3 + 1] = mixedColor.g;
+      col[i * 3 + 2] = mixedColor.b;
+    }
+
+    return [pos, col];
+  }, [count]);
+
+  useFrame((state, delta) => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y += delta * 0.025;
+      pointsRef.current.rotation.x += delta * 0.01;
+    }
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          args={[colors, 3]}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.07}
+        vertexColors
+        transparent
+        opacity={0.7}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// Component: Equatorial & Polar Wireframe HUD Rings
+function OrbitalHudRings() {
+  const ringRef1 = useRef<THREE.Group>(null);
+  const ringRef2 = useRef<THREE.Group>(null);
+
+  useFrame((state, delta) => {
+    if (ringRef1.current) ringRef1.current.rotation.z += delta * 0.15;
+    if (ringRef2.current) ringRef2.current.rotation.x -= delta * 0.12;
+  });
+
+  return (
+    <group>
+      <group ref={ringRef1} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh>
+          <ringGeometry args={[5.25, 5.28, 64]} />
+          <meshBasicMaterial color="#38bdf8" side={THREE.DoubleSide} transparent opacity={0.35} />
+        </mesh>
+      </group>
+      <group ref={ringRef2} rotation={[0, Math.PI / 4, 0]}>
+        <mesh>
+          <ringGeometry args={[5.35, 5.37, 64]} />
+          <meshBasicMaterial color="#818cf8" side={THREE.DoubleSide} transparent opacity={0.25} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// Component: 3D Targeting Reticle hovering over focused lat/lng
+function TargetingReticle({ lat, lng }: { lat: number; lng: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const pos = useMemo(() => latLngToVector3(lat, lng, 5.04), [lat, lng]);
+
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.z += delta * 2.2;
+    }
+  });
+
+  const normal = useMemo(() => pos.clone().normalize(), [pos]);
+  const quaternion = useMemo(() => {
+    const q = new THREE.Quaternion();
+    q.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+    return q;
+  }, [normal]);
+
+  return (
+    <group position={pos} quaternion={quaternion} ref={groupRef}>
+      <mesh>
+        <ringGeometry args={[0.3, 0.38, 32]} />
+        <meshBasicMaterial color="#38bdf8" side={THREE.DoubleSide} transparent opacity={0.9} />
+      </mesh>
+      <mesh>
+        <ringGeometry args={[0.15, 0.19, 24]} />
+        <meshBasicMaterial color="#f43f5e" side={THREE.DoubleSide} transparent opacity={0.95} />
+      </mesh>
+      <mesh>
+        <circleGeometry args={[0.07, 16]} />
+        <meshBasicMaterial color="#ffffff" side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+// Component: Camera Flight & Zoom Animator
+interface CameraFlightAnimatorProps {
+  flightTarget: { lat: number; lng: number; dist: number; timestamp: number } | null;
+  controlsRef: React.RefObject<any>;
+}
+
+function CameraFlightAnimator({ flightTarget, controlsRef }: CameraFlightAnimatorProps) {
+  const lastTimeRef = useRef<number>(0);
+  const isAnimatingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (flightTarget && flightTarget.timestamp !== lastTimeRef.current) {
+      lastTimeRef.current = flightTarget.timestamp;
+      isAnimatingRef.current = true;
+    }
+  }, [flightTarget]);
+
+  useFrame(() => {
+    if (flightTarget && isAnimatingRef.current && controlsRef.current) {
+      const desiredCamPos = latLngToVector3(flightTarget.lat, flightTarget.lng, flightTarget.dist);
+      
+      controlsRef.current.object.position.lerp(desiredCamPos, 0.08);
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+
+      if (controlsRef.current.object.position.distanceTo(desiredCamPos) < 0.06) {
+        isAnimatingRef.current = false;
+      }
+    }
+  });
+
+  return null;
+}
+
 // Component: 3D Curved Bezier Data/Flight Arc
 interface ArcLineProps {
   start: THREE.Vector3;
@@ -927,6 +1202,8 @@ interface EarthSceneProps {
   onSelectDest: (dest: GlobalDestination) => void;
   onPointerClickGlobe: (lat: number, lng: number) => void;
   showAtmosphere: boolean;
+  showGeoJsonBorders: boolean;
+  borderColor: string;
   showMarkers: boolean;
   showTerminator: boolean;
   showNightLights: boolean;
@@ -934,6 +1211,8 @@ interface EarthSceneProps {
   isAutoRotating: boolean;
   rotationSpeed: number;
   filteredDestinations: GlobalDestination[];
+  flightTarget: { lat: number; lng: number; dist: number; timestamp: number } | null;
+  controlsRef: React.RefObject<any>;
 }
 
 function EarthScene({
@@ -941,13 +1220,17 @@ function EarthScene({
   onSelectDest,
   onPointerClickGlobe,
   showAtmosphere,
+  showGeoJsonBorders,
+  borderColor,
   showMarkers,
   showTerminator,
   showNightLights,
   showArcs,
   isAutoRotating,
   rotationSpeed,
-  filteredDestinations
+  filteredDestinations,
+  flightTarget,
+  controlsRef
 }: EarthSceneProps) {
   const earthMeshRef = useRef<THREE.Mesh>(null);
   const cloudMeshRef = useRef<THREE.Mesh>(null);
@@ -983,21 +1266,21 @@ function EarthScene({
   const targetPinPos = useMemo(() => latLngToVector3(selectedDest.lat, selectedDest.lng, 5.02), [selectedDest]);
 
   const arcPairs = useMemo(() => {
-    const indore = PRESET_DESTINATIONS.find(d => d.id === 'indore')!;
-    const tokyo = PRESET_DESTINATIONS.find(d => d.id === 'tokyo')!;
-    const london = PRESET_DESTINATIONS.find(d => d.id === 'london')!;
-    const ny = PRESET_DESTINATIONS.find(d => d.id === 'newyork')!;
-    const dubai = PRESET_DESTINATIONS.find(d => d.id === 'dubai')!;
-    const sydney = PRESET_DESTINATIONS.find(d => d.id === 'sydney')!;
-    const cairo = PRESET_DESTINATIONS.find(d => d.id === 'cairo')!;
+    const beijing = PRESET_DESTINATIONS.find(d => d.id === 'beijing') || PRESET_DESTINATIONS[0];
+    const shanghai = PRESET_DESTINATIONS.find(d => d.id === 'shanghai') || PRESET_DESTINATIONS[1];
+    const tokyo = PRESET_DESTINATIONS.find(d => d.id === 'tokyo') || PRESET_DESTINATIONS[2];
+    const london = PRESET_DESTINATIONS.find(d => d.id === 'london') || PRESET_DESTINATIONS[3];
+    const ny = PRESET_DESTINATIONS.find(d => d.id === 'newyork') || PRESET_DESTINATIONS[4];
+    const dubai = PRESET_DESTINATIONS.find(d => d.id === 'dubai') || PRESET_DESTINATIONS[5];
+    const sydney = PRESET_DESTINATIONS.find(d => d.id === 'sydney') || PRESET_DESTINATIONS[6];
 
     return [
-      { start: latLngToVector3(indore.lat, indore.lng, 5), end: latLngToVector3(tokyo.lat, tokyo.lng, 5), color: '#38bdf8' },
-      { start: latLngToVector3(indore.lat, indore.lng, 5), end: latLngToVector3(london.lat, london.lng, 5), color: '#6366f1' },
+      { start: latLngToVector3(beijing.lat, beijing.lng, 5), end: latLngToVector3(tokyo.lat, tokyo.lng, 5), color: '#38bdf8' },
+      { start: latLngToVector3(shanghai.lat, shanghai.lng, 5), end: latLngToVector3(london.lat, london.lng, 5), color: '#6366f1' },
+      { start: latLngToVector3(beijing.lat, beijing.lng, 5), end: latLngToVector3(shanghai.lat, shanghai.lng, 5), color: '#10b981' },
       { start: latLngToVector3(ny.lat, ny.lng, 5), end: latLngToVector3(london.lat, london.lng, 5), color: '#38bdf8' },
       { start: latLngToVector3(london.lat, london.lng, 5), end: latLngToVector3(dubai.lat, dubai.lng, 5), color: '#f59e0b' },
-      { start: latLngToVector3(tokyo.lat, tokyo.lng, 5), end: latLngToVector3(sydney.lat, sydney.lng, 5), color: '#10b981' },
-      { start: latLngToVector3(cairo.lat, cairo.lng, 5), end: latLngToVector3(london.lat, london.lng, 5), color: '#f43f5e' }
+      { start: latLngToVector3(tokyo.lat, tokyo.lng, 5), end: latLngToVector3(sydney.lat, sydney.lng, 5), color: '#10b981' }
     ];
   }, []);
 
@@ -1006,6 +1289,13 @@ function EarthScene({
       <ambientLight intensity={1.2} />
       <directionalLight position={[20, 15, 20]} intensity={1.8} color="#ffffff" />
       <directionalLight position={[-20, -10, -20]} intensity={0.6} color="#38bdf8" />
+
+      {/* Camera lerp controller */}
+      <CameraFlightAnimator flightTarget={flightTarget} controlsRef={controlsRef} />
+
+      {/* Digital Sci-Fi Particle Atmosphere */}
+      <DigitalParticleCloud count={850} />
+      <OrbitalHudRings />
 
       {/* Earth Sphere Mesh */}
       <mesh ref={earthMeshRef} onClick={handleGlobeClick}>
@@ -1022,6 +1312,11 @@ function EarthScene({
             uTerminatorEnabled: { value: showTerminator ? 1.0 : 0.0 }
           }}
         />
+
+        {/* 3D GeoJSON Glowing Boundary Lines overlaid on globe surface */}
+        {showGeoJsonBorders && (
+          <GeoJsonCountryBorders color={borderColor} opacity={0.85} lineWidth={1.2} />
+        )}
       </mesh>
 
       {/* Cloud Layer */}
@@ -1048,6 +1343,9 @@ function EarthScene({
           />
         </mesh>
       )}
+
+      {/* 3D Targeting Reticle over current focused location */}
+      <TargetingReticle lat={selectedDest.lat} lng={selectedDest.lng} />
 
       {/* Active Target Beacon Pin */}
       <mesh position={targetPinPos}>
@@ -1102,19 +1400,33 @@ interface InteractiveEarthGlobeProps {
   onSelectLocation?: (lat: number, lng: number, name: string) => void;
   onOpenSatelliteAnalyzer?: () => void;
   onDispatchCrew?: (crewType: string, ward: string) => void;
+  onNavigateToCommandDashboard?: () => void;
 }
 
 export const InteractiveEarthGlobe: React.FC<InteractiveEarthGlobeProps> = ({
   onSelectLocation,
   onOpenSatelliteAnalyzer,
-  onDispatchCrew
+  onDispatchCrew,
+  onNavigateToCommandDashboard
 }) => {
   const [selectedDest, setSelectedDest] = useState<GlobalDestination>(PRESET_DESTINATIONS[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContinent, setSelectedContinent] = useState<string>('ALL');
 
+  const controlsRef = useRef<any>(null);
+
+  // Camera flight target state for zoom animation
+  const [flightTarget, setFlightTarget] = useState<{ lat: number; lng: number; dist: number; timestamp: number } | null>({
+    lat: PRESET_DESTINATIONS[0].lat,
+    lng: PRESET_DESTINATIONS[0].lng,
+    dist: 16.0,
+    timestamp: Date.now()
+  });
+
   // Layer Toggles
   const [showAtmosphere, setShowAtmosphere] = useState(true);
+  const [showGeoJsonBorders, setShowGeoJsonBorders] = useState(true);
+  const [borderColor, setBorderColor] = useState('#38bdf8');
   const [showMarkers, setShowMarkers] = useState(true);
   const [showTerminator, setShowTerminator] = useState(true);
   const [showNightLights, setShowNightLights] = useState(true);
@@ -1139,7 +1451,34 @@ export const InteractiveEarthGlobe: React.FC<InteractiveEarthGlobeProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Custom Click Handler
+  // Trigger camera flight & zoom to destination
+  const handleFlyAndZoomToDestination = (dest: GlobalDestination, zoomDist: number = 6.8) => {
+    setSelectedDest(dest);
+    setAiBriefing(null);
+    setIsAutoRotating(false); // Pause auto-rotation during camera flight
+    setFlightTarget({
+      lat: dest.lat,
+      lng: dest.lng,
+      dist: zoomDist,
+      timestamp: Date.now()
+    });
+    if (onSelectLocation) {
+      onSelectLocation(dest.lat, dest.lng, dest.name);
+    }
+  };
+
+  // Reset Camera to Global Orbit
+  const handleResetToGlobalOrbit = () => {
+    setIsAutoRotating(true);
+    setFlightTarget({
+      lat: selectedDest.lat,
+      lng: selectedDest.lng,
+      dist: 16.0,
+      timestamp: Date.now()
+    });
+  };
+
+  // Custom Click Handler anywhere on globe
   const handlePointerClickGlobe = (lat: number, lng: number) => {
     const nearest = PRESET_DESTINATIONS.reduce((prev, curr) => {
       const dPrev = Math.hypot(prev.lat - lat, prev.lng - lng);
@@ -1147,36 +1486,34 @@ export const InteractiveEarthGlobe: React.FC<InteractiveEarthGlobeProps> = ({
       return dCurr < dPrev ? curr : prev;
     });
 
-    const dist = Math.hypot(nearest.lat - lat, nearest.lng - lng);
+    const distToNearest = Math.hypot(nearest.lat - lat, nearest.lng - lng);
     let targetDest: GlobalDestination;
 
-    if (dist < 12) {
+    if (distToNearest < 8) {
       targetDest = nearest;
     } else {
+      const isChinaRegion = lat >= 18 && lat <= 53 && lng >= 73 && lng <= 135;
+      
       targetDest = {
         id: `custom-${Date.now()}`,
-        name: `Coordinates (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`,
-        country: 'Global Territory',
-        flag: '🌐',
+        name: isChinaRegion ? `China Grid (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)` : `Coordinates (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`,
+        country: isChinaRegion ? 'China' : 'Global Territory',
+        flag: isChinaRegion ? '🇨🇳' : '🌐',
         continent: 'Asia',
         lat,
         lng,
         category: 'Hazard Zone',
         tempC: Math.round(28 - Math.abs(lat) * 0.35),
-        condition: 'Orbital Telemetry Lock',
+        condition: 'Tactical Zoom Lock',
         aqi: Math.round(25 + Math.random() * 35),
         riskLevel: Math.abs(lat) < 30 ? 'HIGH' : 'LOW',
-        description: `Orbital target locked at ${lat.toFixed(2)}° N, ${lng.toFixed(2)}° E. Real-time satellite scan ready.`,
+        description: `Orbital camera zoom activated at ${lat.toFixed(2)}° N, ${lng.toFixed(2)}° E. High-resolution telemetry array locked.`,
         population: 'N/A',
         utcOffset: Math.round(lng / 15)
       };
     }
 
-    setSelectedDest(targetDest);
-    setAiBriefing(null);
-    if (onSelectLocation) {
-      onSelectLocation(targetDest.lat, targetDest.lng, targetDest.name);
-    }
+    handleFlyAndZoomToDestination(targetDest, 6.5);
   };
 
   // Filtered Cities for Search & Continent Tab
@@ -1264,25 +1601,25 @@ export const InteractiveEarthGlobe: React.FC<InteractiveEarthGlobeProps> = ({
         <div className="lg:col-span-8 bg-slate-900/80 rounded-3xl border border-slate-800 p-1 relative min-h-[520px] flex flex-col justify-between overflow-hidden shadow-2xl">
           
           <Canvas
-            camera={{ position: [0, 0, 15], fov: 45 }}
-            style={{ width: '100%', height: '500px', borderRadius: '1.25rem' }}
+            camera={{ position: [0, 0, 16], fov: 45 }}
+            style={{ width: '100%', height: '520px', borderRadius: '1.25rem' }}
           >
             <OrbitControls
+              ref={controlsRef}
               enableDamping={true}
               dampingFactor={0.05}
-              minDistance={7}
+              minDistance={5}
               maxDistance={25}
               autoRotate={isAutoRotating}
               autoRotateSpeed={rotationSpeed * 500}
             />
             <EarthScene
               selectedDest={selectedDest}
-              onSelectDest={(dest) => {
-                setSelectedDest(dest);
-                setAiBriefing(null);
-              }}
+              onSelectDest={(dest) => handleFlyAndZoomToDestination(dest, 6.8)}
               onPointerClickGlobe={handlePointerClickGlobe}
               showAtmosphere={showAtmosphere}
+              showGeoJsonBorders={showGeoJsonBorders}
+              borderColor={borderColor}
               showMarkers={showMarkers}
               showTerminator={showTerminator}
               showNightLights={showNightLights}
@@ -1290,6 +1627,8 @@ export const InteractiveEarthGlobe: React.FC<InteractiveEarthGlobeProps> = ({
               isAutoRotating={isAutoRotating}
               rotationSpeed={rotationSpeed}
               filteredDestinations={filteredDestinations}
+              flightTarget={flightTarget}
+              controlsRef={controlsRef}
             />
           </Canvas>
 
@@ -1349,6 +1688,41 @@ export const InteractiveEarthGlobe: React.FC<InteractiveEarthGlobeProps> = ({
                 />
                 <span>City Markers</span>
               </label>
+
+              <label className="flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white col-span-2">
+                <input 
+                  type="checkbox" 
+                  checked={showGeoJsonBorders} 
+                  onChange={(e) => setShowGeoJsonBorders(e.target.checked)}
+                  className="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-0" 
+                />
+                <span className="font-bold text-cyan-300">GeoJSON Glowing Borders</span>
+              </label>
+
+              {showGeoJsonBorders && (
+                <div className="col-span-2 flex items-center justify-between pt-1 border-t border-slate-800/80 text-[10px]">
+                  <span className="text-slate-400">Glow Tone:</span>
+                  <div className="flex items-center gap-1">
+                    {[
+                      { name: 'Cyan', hex: '#38bdf8' },
+                      { name: 'Rose', hex: '#f43f5e' },
+                      { name: 'Emerald', hex: '#10b981' },
+                      { name: 'Amber', hex: '#f59e0b' },
+                      { name: 'Purple', hex: '#a855f7' }
+                    ].map((c) => (
+                      <button
+                        key={c.hex}
+                        onClick={() => setBorderColor(c.hex)}
+                        className={`w-3.5 h-3.5 rounded-full transition cursor-pointer border ${
+                          borderColor === c.hex ? 'ring-2 ring-white scale-125 border-white' : 'border-transparent opacity-70 hover:opacity-100'
+                        }`}
+                        style={{ backgroundColor: c.hex }}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <label className="flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white col-span-2">
                 <input 

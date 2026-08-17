@@ -21,6 +21,9 @@ import { EmergencyBroadcastModal } from './components/EmergencyBroadcastModal';
 import { AuthoritySwitchModal } from './components/AuthoritySwitchModal';
 import { ApprovalQueueModal } from './components/ApprovalQueueModal';
 
+import { LandingPage } from './components/LandingPage';
+import { UserProfilePage } from './components/UserProfilePage';
+
 import { 
   Incident, 
   MaintenanceCrew, 
@@ -37,7 +40,8 @@ import {
   WardRiskProfile,
   AuthorityLevel,
   ApprovalRequest,
-  AuditLogItem
+  AuditLogItem,
+  UserProfile
 } from './types';
 import { 
   INITIAL_INCIDENTS, 
@@ -58,8 +62,40 @@ import {
 import { playNotificationChime } from './utils/audio';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics'>('command');
+  const [activeTab, setActiveTab] = useState<'landing' | 'command' | 'map' | 'globe' | 'copilot' | 'predictive' | 'incidents' | 'crews' | 'community' | 'analytics' | 'profile'>('landing');
   
+  // User Profile State (persisted in localStorage)
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    const saved = localStorage.getItem('urban_resilience_user_profile');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* ignore parse error */ }
+    }
+    return {
+      name: 'Alex Rivers',
+      email: 'ssudhirasha@gmail.com',
+      location: 'Beijing, China',
+      country: 'China',
+      coordinates: { lat: 39.9042, lng: 116.4074 },
+      role: 'Chief Resiliency Officer',
+      agency: 'Global Water Command & Urban Resiliency OS',
+      dutyStatus: 'ACTIVE_DUTY',
+      avatarInitials: 'AR',
+      joinedDate: '2026-08-16',
+      badgeId: 'CMD-8842-CN',
+      preferredContinent: 'Asia'
+    };
+  });
+
+  const handleUpdateProfile = useCallback((updated: Partial<UserProfile>) => {
+    setUserProfile(prev => {
+      const next = { ...prev, ...updated };
+      try {
+        localStorage.setItem('urban_resilience_user_profile', JSON.stringify(next));
+      } catch (e) { /* ignore storage error */ }
+      return next;
+    });
+  }, []);
+
   // 2-Level Authority State (Default: Level 1 Monitor)
   const [currentAuthority, setCurrentAuthority] = useState<AuthorityLevel>('MONITOR');
   const [isAuthorityModalOpen, setIsAuthorityModalOpen] = useState(false);
@@ -471,10 +507,11 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white font-sans">
       
-      {/* Top Navigation Bar with Authority Badge */}
+      {/* Top Navigation Bar with Authority Badge & User Profile */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        userProfile={userProfile}
         weather={weather}
         cityHealth={cityHealth}
         notifications={notifications}
@@ -495,6 +532,30 @@ export default function App() {
 
       {/* Main View Port */}
       <main className="flex-1 w-full relative">
+        
+        {/* Landing Page / Welcome Portal */}
+        {activeTab === 'landing' && (
+          <LandingPage
+            userProfile={userProfile}
+            onUpdateProfile={handleUpdateProfile}
+            onNavigate={setActiveTab}
+            currentAuthority={currentAuthority}
+            onOpenAuthorityModal={() => setIsAuthorityModalOpen(true)}
+          />
+        )}
+
+        {/* Commander Profile & Settings Page */}
+        {activeTab === 'profile' && (
+          <UserProfilePage
+            userProfile={userProfile}
+            onUpdateProfile={handleUpdateProfile}
+            currentAuthority={currentAuthority}
+            onOpenAuthorityModal={() => setIsAuthorityModalOpen(true)}
+            auditLogs={auditLogs}
+            onNavigate={setActiveTab}
+          />
+        )}
+
         {/* Command Dashboard */}
         {activeTab === 'command' && (
           <div className="max-w-7xl mx-auto px-4 py-6">
@@ -577,6 +638,7 @@ export default function App() {
               }}
               onOpenSatelliteAnalyzer={() => setIsSatelliteModalOpen(true)}
               onDispatchCrew={() => setActiveTab('crews')}
+              onNavigateToCommandDashboard={() => setActiveTab('command')}
             />
           </div>
         )}

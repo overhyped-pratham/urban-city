@@ -372,6 +372,24 @@ export interface ApprovalRequest {
   digitalSignature?: string;
 }
 
+export interface UserProfile {
+  name: string;
+  email: string;
+  location: string;
+  country: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  role: string;
+  agency: string;
+  dutyStatus: 'ACTIVE_DUTY' | 'ON_CALL' | 'EMERGENCY_STANDBY' | 'EXECUTIVE_COMMAND';
+  avatarInitials: string;
+  joinedDate: string;
+  badgeId: string;
+  preferredContinent: string;
+}
+
 export interface AuditLogItem {
   id: string;
   timestamp: string;
